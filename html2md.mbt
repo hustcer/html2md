@@ -70,7 +70,5 @@ pub fn convert_dom(
     link_empty_content_behavior~,
     list_end_comment~,
   )
-  ignore(doc)
-  ignore(options)
-  ...
+  run_pipeline(doc, options)
 }
