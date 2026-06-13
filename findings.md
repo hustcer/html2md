@@ -16,7 +16,7 @@
 - blockquote：TrimSpace→空则成功返回；TrimConsecutiveNewlines+TrimUnnecessaryHardLineBreaks→PrefixLines("> ")→\n\n 包裹
 - br→"  \n"；hr→"\n\n* * *\n\n"
 - collapse 算法：见 collapse.go 移植注释（prevText/keepLeadingWs 游标机）
-- URL：`#` 直返；\n→%0A \t→%09；data: URI 只做 percentEncodingReplacer（空格[]()<> → %20 %5B %5D %28 %29 %3C %3E）；查询按 & 分段、各段 k/v QueryUnescape→QueryEscape、+→%20；有 domain 时 ResolveReference
+- URL：`#` 直返；\n→%0A \t→%09；data: URI 只做 percentEncodingReplacer（空格[]()<> → %20 %5B %5D %28 %29 %3C %3E）；有 domain 时按 RFC 3986 relative reference 解析 path/query/fragment 并移除 dot-segments；query 组件按 RFC 3986 `pchar / "/" / "?"` 重编码，保留合法 `%HH` 和 `+`，非法 `%`→`%25`，空格→`%20`，非 ASCII→UTF-8 百分号编码。
 - 空文档：Go 版 html.Parse 永不失败，空输入产出空输出（无错误）；NewConverter 校验错误在 ConvertNode 时返回
 
 ## 依赖（bobzhang/html_parser@0.1.7）
@@ -37,3 +37,8 @@
 - table 先输出 GFM pipe table：header 行、delimiter 行、body 行；单元格内容复用现有 inline 渲染后压成单行，并转义 pipe。
 - table 不在 P7 内实现 alignment/colspan/rowspan 的完整 HTML 表格模型；复杂表格优先保持可读 Markdown，不引入公共 API。
 - `bobzhang/html_parser` 会把裸 `<table><tr>...` 规范化为 `table > tbody > tr`，table 行收集需要递归穿过 `thead/tbody/tfoot`。
+
+## URL query 编码取舍
+- 标准依据：RFC 3986 的 query 语法是 `*( pchar / "/" / "?" )`，其中 `pchar` 包含 unreserved、pct-encoded、sub-delims、`:`、`@`；WHATWG URL 的 query percent-encode 也确认空格、`#`、`<`、`>`、控制字符和非 ASCII 需要编码，且只有 `application/x-www-form-urlencoded` 才把空格编码成 `+`。
+- 本实现做组件级重编码：只处理 `?` 到 `#` 之间的 query，不对 path/fragment 套用 query 规则；合法 `%HH` 保留并规范为大写 hex，裸 `%` 编为 `%25`。
+- 不按 Go 版 `QueryUnescape`/`QueryEscape` 分段重写键值对，因为那会把 `+` 当空格或改变部分原始 query 语义；这里优先遵循 URL 标准和行业通用行为。

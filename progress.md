@@ -36,3 +36,9 @@
 - 已更新 README.mbt.md 和 PLAN.md：P7 table/strikethrough 标记为已内置支持，Renderer hooks 移到后续 P8。
 - 验证完成：`moon fmt`、`moon check --target all --diagnostic-limit 200`、`moon test --target all`（四后端 231/231 通过）、`moon info`。
 - `planning-with-files` 的 `check-complete.sh` 对当前 legacy markdown 表格未识别出 phases，输出 `0/0 phases complete`；已人工核对 `task_plan.md` 中 P7a-P7d 均为 complete。
+
+## URL query re-encoding session
+- 用户要求补齐 URL 查询参数重编码，并明确以标准规范和行业共识为准，不盲目对齐 Go 版。
+- 采用 RFC 3986 query 组件规则：保留 unreserved/sub-delims/`:`/`@`/`/`/`?` 和合法 `%HH`，空格编码为 `%20`，Unicode 使用 UTF-8 百分号编码，非法 `%` 编为 `%25`，`+` 不当作空格。
+- 已实现 `url.mbt` query 组件标准化，并新增 `url_test.mbt` 覆盖普通 URL、query-only reference、Unicode、非法 `%`、合法 `%HH` 与 `mailto` query。
+- 验证完成：`moon fmt`、`moon test url_test.mbt --target all`、`moon check --target all --diagnostic-limit 200`、`moon test --target all`（四后端 234/234 通过）、`moon info`、`git diff --check`。

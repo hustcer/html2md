@@ -55,7 +55,7 @@ html.Parse → DOM 树
 | `x/net/html` 全规格解析器           | 引入 **`bobzhang/html_parser`**（仅依赖其 `parser`/`dom`/`core` 三个包） | JustHTML 的规格级移植，带 html5lib 一致性测试、完整实体表、adoption agency；与 x/net/html 同为 HTML5 语义（含 html/head/body 隐式补全），与 Go 参考行为对齐度反而更高；自研方案（~950 行 + 实体表）整体砍掉 |
 | `[]byte` 处理                       | UTF-16 `String`/`StringView` + `StringBuilder`                           | marker 选用 BMP 单码元字符（`''`、`''`），逻辑等价                                                                                                                                                         |
 | options struct + functional options | **标签化可选参数**（labeled optional params）                            | MoonBit 惯用法（skill 明确反对 options struct）                                                                                                                                                             |
-| `net/url` 解析                      | 内置极简 URL 处理（scheme 识别、相对路径拼接、百分号转义、查询重编码）   | 够用即可，行为对齐 Go 版 defaultAssembleAbsoluteURL                                                                                                                                                         |
+| `net/url` 解析                      | 内置极简 URL 处理（scheme 识别、相对路径拼接、RFC 3986 查询重编码）      | 对齐 URL 标准和行业共识：query 组件保留合法 `%HH`、`/`、`?` 和 `+`，空格用 `%20`，Unicode 用 UTF-8 百分号编码；Go 版仅作参考                                                                                |
 | 返回 `([]byte, error)`              | `-> String raise ConvertError`                                           | MoonBit 受检错误                                                                                                                                                                                            |
 
 ### 2.2 模块与包布局
@@ -174,17 +174,17 @@ convert(html, ...) =
 
 ## 3. 实施阶段
 
-| 阶段               | 内容                                                                                            | 验收                                   |
-| ------------------ | ----------------------------------------------------------------------------------------------- | -------------------------------------- |
-| P0 脚手架          | moon.mod/包结构/spec.mbt（declare 公共 API）/`moon add bobzhang/html_parser@0.1.7` + 三后端冒烟 | `moon check --target all` 通过         |
-| P1 DOM 适配层      | internal/domext：游标遍历、rename/set_text 替换助手、block/inline/void 名单、解析冒烟测试       | 适配层单测 + DOM 结构 dump 快照        |
-| P2 文本工具 + 折叠 | textutils、collapse                                                                             | 移植对应 Go 单测                       |
-| P3 引擎 + 基础行为 | render 骨架、fallback、remove、文本管线、post-render                                            | 简单段落/嵌套 div 端到端               |
-| P4 commonmark 渲染 | heading/emphasis/link/image/list/code/blockquote/hr/br + domutils 全部变换                      | 移植 commonmark_test 用例              |
-| P5 智能转义        | marker + 11 个 un-escaper + EscapeMode                                                          | 移植 escape 用例（`fake **bold**` 等） |
-| P6 收尾            | url.mbt、配置校验、README.mbt.md、`moon info` 固化 .mbti                                        | 全量 `moon test` 绿                    |
-| P7 扩展            | table（GFM）、strikethrough                                                | `moon test gfm_p7_test.mbt --target all` |
-| P8 可选            | Renderer 自定义钩子、插件子包                                              | 后续版本设计                             |
+| 阶段               | 内容                                                                                            | 验收                                     |
+| ------------------ | ----------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| P0 脚手架          | moon.mod/包结构/spec.mbt（declare 公共 API）/`moon add bobzhang/html_parser@0.1.7` + 三后端冒烟 | `moon check --target all` 通过           |
+| P1 DOM 适配层      | internal/domext：游标遍历、rename/set_text 替换助手、block/inline/void 名单、解析冒烟测试       | 适配层单测 + DOM 结构 dump 快照          |
+| P2 文本工具 + 折叠 | textutils、collapse                                                                             | 移植对应 Go 单测                         |
+| P3 引擎 + 基础行为 | render 骨架、fallback、remove、文本管线、post-render                                            | 简单段落/嵌套 div 端到端                 |
+| P4 commonmark 渲染 | heading/emphasis/link/image/list/code/blockquote/hr/br + domutils 全部变换                      | 移植 commonmark_test 用例                |
+| P5 智能转义        | marker + 11 个 un-escaper + EscapeMode                                                          | 移植 escape 用例（`fake **bold**` 等）   |
+| P6 收尾            | url.mbt、配置校验、README.mbt.md、`moon info` 固化 .mbti                                        | 全量 `moon test` 绿                      |
+| P7 扩展            | table（GFM）、strikethrough                                                                     | `moon test gfm_p7_test.mbt --target all` |
+| P8 可选            | Renderer 自定义钩子、插件子包                                                                   | 后续版本设计                             |
 
 工作量预估（源码行数，不含测试）：domext ~250、collapse ~150、textutils ~350、domutils ~450、escape ~450、渲染器 ~650、门面/选项/url ~300，合计约 2600 行（引入解析器依赖后较自研方案省约 950 行 + 实体表）；测试约 1200+ 行。
 
@@ -193,5 +193,5 @@ convert(html, ...) =
 1. **依赖风险（bobzhang/html_parser 0.1.x）**：API 仍可能变动 → 锁定 `@0.1.7`；升级时 diff 其 `pkg.generated.mbti`；适配面收敛在 `internal/domext` 一个包里，必要时可换回自研解析器而不动渲染管线。`convert_dom` 公开签名暴露了依赖的 `Node` 类型，文档中注明。
 2. **children 数组型 DOM 与 Go 兄弟链表语义差异**：collapse/domutils 的游标遍历、边遍历边删改节点的逻辑需在 domext 游标上重新推演 → 对照 Go 版 collapse_test（632 行）逐用例移植验证。
 3. **UTF-16 与字节语义差异**：Go 版按字节扫描、marker 是单字节 → MoonBit 按 UTF-16 码元扫描，marker 用单码元字符，逐函数对照单测保证等价；代理对用 `get_char`/迭代器处理。
-4. **URL 处理简化**：当前已覆盖相对路径、query-only reference、fragment 与 dot-segment normalization；仍未完整实现 Go 版查询参数重编码，用 url_test.go 用例约束。
+4. **URL 处理范围**：当前覆盖相对路径、query-only reference、fragment、dot-segment normalization 与 RFC 3986 query 组件重编码；`url_test.mbt` 约束空格、Unicode、非法 `%`、合法 `%HH`、`mailto` 与 query-only base 行为。
 5. **列表/转义是细节重灾区**：序号补零、缩进、`` 缩进追加、列表层 UnEscape 时机等，严格按 Go 源码逐行移植并配快照测试。

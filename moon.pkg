@@ -8,6 +8,7 @@ import {
   "hustcer/html2md/internal/textutils",
   "hustcer/html2md/internal/escape",
   "moonbitlang/core/string",
+  "moonbitlang/core/encoding/utf8",
 }
 
 import {

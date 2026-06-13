@@ -27,6 +27,7 @@
 - P7 不引入运行时插件框架，先作为固定流水线内置渲染器实现 table 和 strikethrough。
 - GFM table 输出要求至少一行 header 与 delimiter；缺少显式 header 时使用首行作为 header，空表 fallback 为子节点渲染。
 - P7 已完成固定渲染器实现；Renderer 自定义钩子留作后续 P8 设计。
+- URL query 重编码按 RFC 3986/WHATWG URL 的标准语义实现，不盲目复刻 Go 版键值对重写；`+` 保留为字面 plus，空格编码为 `%20`。
 
 ## Errors Encountered
 | Error | Attempt | Resolution |

@@ -1,8 +1,7 @@
-// URL assembly tests, ported from `converter/url_test.go`. They exercise
-// `assemble_absolute_url` through the public `convert` (via `<a href>`).
-//
-// Note: unlike the Go reference we do NOT re-encode query strings (see PLAN.md
-// risk #4), so the mailto query-encoding cases are intentionally omitted.
+// URL assembly tests exercise `assemble_absolute_url` through the public
+// `convert` (via `<a href>`). Query component encoding follows RFC 3986:
+// keep allowed query data and valid percent-encoded octets, encode invalid
+// units with UTF-8 percent-encoding, and never treat `+` as a space.
 
 ///|
 fn link(href : String, domain? : String = "") -> String raise {
@@ -98,6 +97,34 @@ test "url: query parameter order preserved" {
 }
 
 ///|
+test "url: query component is RFC3986 percent-encoded" {
+  inspect(
+    link("https://example.com/search?q=hello world&next=/a?b=1&plus=a+b"),
+    content=(
+      #|[x](https://example.com/search?q=hello%20world&next=/a?b=1&plus=a+b)
+    ),
+  )
+  inspect(
+    link("https://example.com/search?q=中文&raw=[x]#frag ment"),
+    content=(
+      #|[x](https://example.com/search?q=%E4%B8%AD%E6%96%87&raw=%5Bx%5D#frag%20ment)
+    ),
+  )
+  inspect(
+    link("https://example.com/search?q=a%2fb&bad=%zz&tail=%"),
+    content=(
+      #|[x](https://example.com/search?q=a%2Fb&bad=%25zz&tail=%25)
+    ),
+  )
+  inspect(
+    link("https://example.com/search?q=1+1%20%3d%202"),
+    content=(
+      #|[x](https://example.com/search?q=1+1%20%3D%202)
+    ),
+  )
+}
+
+///|
 test "url: query-only reference replaces base query" {
   inspect(
     link("?p=2", domain="https://example.com/path?a=1"),
@@ -120,6 +147,22 @@ test "url: query-only reference replaces base query" {
 }
 
 ///|
+test "url: query-only reference is re-encoded after base resolution" {
+  inspect(
+    link("?q=hello world&to=../img.png", domain="https://example.com/path?a=1"),
+    content=(
+      #|[x](https://example.com/path?q=hello%20world&to=../img.png)
+    ),
+  )
+  inspect(
+    link("?q=100% done", domain="https://example.com"),
+    content=(
+      #|[x](https://example.com?q=100%25%20done)
+    ),
+  )
+}
+
+///|
 test "url: relative path dot segments are normalized" {
   inspect(
     link("../img.png", domain="https://example.com/docs/page.html"),
@@ -137,6 +180,22 @@ test "url: relative path dot segments are normalized" {
     link("../img.png?q=1#h", domain="https://example.com/docs/page.html?a=1"),
     content=(
       #|[x](https://example.com/img.png?q=1#h)
+    ),
+  )
+}
+
+///|
+test "url: mailto query fields are percent-encoded" {
+  inspect(
+    link("mailto:hi@example.com?subject=Hello World&body=Line 1\nLine 2"),
+    content=(
+      #|[x](mailto:hi@example.com?subject=Hello%20World&body=Line%201%0ALine%202)
+    ),
+  )
+  inspect(
+    link("mailto:hi@example.com?body=1+1=2&note=a%2bb"),
+    content=(
+      #|[x](mailto:hi@example.com?body=1+1=2&note=a%2Bb)
     ),
   )
 }

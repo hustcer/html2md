@@ -25,11 +25,8 @@ fn percent_encode_url_chars(url : String) -> String {
 ///   - newlines/tabs are pre-encoded
 ///   - "data:" URIs are only percent-encoded
 ///   - a relative URL is joined onto `domain` when one is provided
+///   - query components are normalized with RFC 3986 percent-encoding
 ///   - special characters are percent-encoded
-///
-/// Note: we keep query strings as-is (the Go version re-encodes them); this
-/// matches the behavior for the vast majority of inputs and avoids pulling in
-/// a full URL parser.
 fn assemble_absolute_url(
   tag_name : String,
   raw_url : String,
@@ -53,7 +50,115 @@ fn assemble_absolute_url(
   } else {
     raw
   }
-  percent_encode_url_chars(resolved)
+  percent_encode_url_chars(normalize_query_component(resolved))
+}
+
+///|
+/// Normalize the query component of a URI reference according to RFC 3986:
+/// query = *( pchar / "/" / "?" ), where pchar allows unreserved,
+/// pct-encoded, sub-delims, ":" and "@".
+fn normalize_query_component(url : String) -> String {
+  let (before_fragment, fragment) = split_fragment_suffix(url)
+  match find_char(before_fragment, '?') {
+    Some(query_start) => {
+      let before_query = before_fragment[0:query_start + 1].to_owned()
+      let query = before_fragment[query_start + 1:].to_owned()
+      before_query + percent_encode_query(query) + fragment
+    }
+    None => url
+  }
+}
+
+///|
+fn split_fragment_suffix(s : String) -> (String, String) {
+  match find_char(s, '#') {
+    Some(idx) => (s[0:idx].to_owned(), s[idx:].to_owned())
+    None => (s, "")
+  }
+}
+
+///|
+fn percent_encode_query(query : String) -> String {
+  let out = StringBuilder(size_hint=query.length())
+  let mut i = 0
+  while i < query.length() {
+    match query.get_char(i) {
+      Some('%') if has_pct_encoded_triplet(query, i) => {
+        out.write_char('%')
+        out.write_char(uppercase_hex_char(query.get_char(i + 1).unwrap()))
+        out.write_char(uppercase_hex_char(query.get_char(i + 2).unwrap()))
+        i += 3
+      }
+      Some(ch) if is_rfc3986_query_char(ch) => {
+        out.write_char(ch)
+        i += ch.to_string().length()
+      }
+      Some(ch) => {
+        write_percent_encoded_utf8(out, ch)
+        i += ch.to_string().length()
+      }
+      None => i += 1
+    }
+  }
+  out.to_string()
+}
+
+///|
+fn has_pct_encoded_triplet(s : String, idx : Int) -> Bool {
+  match (s.get_char(idx + 1), s.get_char(idx + 2)) {
+    (Some(a), Some(b)) => is_ascii_hex_digit(a) && is_ascii_hex_digit(b)
+    _ => false
+  }
+}
+
+///|
+fn is_rfc3986_query_char(ch : Char) -> Bool {
+  is_ascii_alpha(ch) ||
+  is_ascii_digit(ch) ||
+  ch is ('-' | '.' | '_' | '~') ||
+  ch is ('!' | '$' | '&' | '\'' | '(' | ')' | '*' | '+' | ',' | ';' | '=') ||
+  ch is (':' | '@' | '/' | '?')
+}
+
+///|
+fn is_ascii_hex_digit(ch : Char) -> Bool {
+  is_ascii_digit(ch) || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F')
+}
+
+///|
+fn uppercase_hex_char(ch : Char) -> Char {
+  match ch {
+    'a' => 'A'
+    'b' => 'B'
+    'c' => 'C'
+    'd' => 'D'
+    'e' => 'E'
+    'f' => 'F'
+    _ => ch
+  }
+}
+
+///|
+fn write_percent_encoded_utf8(out : StringBuilder, ch : Char) -> Unit {
+  for byte in @utf8.encode(ch.to_string()) {
+    write_percent_encoded_byte(out, byte.to_int())
+  }
+}
+
+///|
+fn write_percent_encoded_byte(out : StringBuilder, byte : Int) -> Unit {
+  out.write_char('%')
+  out.write_char(hex_digit(byte / 16))
+  out.write_char(hex_digit(byte % 16))
+}
+
+///|
+fn hex_digit(n : Int) -> Char {
+  if n < 10 {
+    ('0'.to_int() + n).unsafe_to_char()
+  } else {
+    ('A'.to_int() + n - 10).unsafe_to_char()
+  }
 }
 
 ///|

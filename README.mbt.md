@@ -43,7 +43,7 @@ test "basic" {
 
 ### Lists, code and blockquotes
 
-```mbt check
+````mbt check
 ///|
 test "blocks" {
   let html =
@@ -64,7 +64,7 @@ test "blocks" {
     ),
   )
 }
-```
+````
 
 ### GFM tables and strikethrough
 
@@ -95,7 +95,7 @@ test "gfm" {
 
 ### Smart escaping
 
-Markdown-special characters in *text* are escaped only when they would
+Markdown-special characters in _text_ are escaped only when they would
 otherwise be parsed as markdown, while real formatting from tags is preserved:
 
 ```mbt check
@@ -124,7 +124,9 @@ test "escaping disabled" {
 
 ### Relative links
 
-Provide a `domain` to turn relative URLs into absolute ones:
+Provide a `domain` to turn relative URLs into absolute ones. Query components
+are percent-encoded with RFC 3986 URL semantics: spaces become `%20`, Unicode
+is UTF-8 percent-encoded, valid `%HH` octets are preserved, and `+` stays `+`.
 
 ```mbt check
 ///|
@@ -132,6 +134,13 @@ test "domain" {
   inspect(
     @html2md.convert("<a href=\"/page\">link</a>", domain="https://example.com"),
     content="[link](https://example.com/page)",
+  )
+  inspect(
+    @html2md.convert(
+      "<a href=\"?q=hello world&next=/a?b=1&plus=a+b\">search</a>",
+      domain="https://example.com/path?old=1",
+    ),
+    content="[search](https://example.com/path?q=hello%20world&next=/a?b=1&plus=a+b)",
   )
 }
 ```
@@ -141,19 +150,19 @@ test "domain" {
 `convert` (and `convert_dom`, which takes an already-parsed
 `@html_parser/dom.Node`) accept the following labeled options:
 
-| Option | Type | Default | Notes |
-|---|---|---|---|
-| `domain` | `String` | `""` | Base domain for relative URLs |
-| `heading_style` | `HeadingStyle` | `Atx` | `Atx` (`# H`) or `Setext` (underlined h1/h2) |
-| `em_delimiter` | `String` | `"*"` | `"*"` or `"_"` |
-| `strong_delimiter` | `String` | `"**"` | `"**"` or `"__"` |
-| `horizontal_rule` | `String` | `"* * *"` | any thematic break (≥3 of `*`/`_`/`-`) |
-| `bullet_list_marker` | `String` | `"-"` | `"-"`, `"+"` or `"*"` |
-| `code_block_fence` | `String` | `` "```" `` | `` "```" `` or `"~~~"` |
-| `escape_mode` | `EscapeMode` | `Smart` | `Smart` or `Disabled` |
-| `link_empty_href_behavior` | `LinkBehavior` | `Render` | `Render` keeps `[text]()`, `Skip` drops the link |
-| `link_empty_content_behavior` | `LinkBehavior` | `Render` | `Render` keeps `[](href)`, `Skip` drops the link |
-| `list_end_comment` | `Bool` | `true` | insert `<!--THE END-->` between adjacent lists |
+| Option                        | Type           | Default   | Notes                                            |
+| ----------------------------- | -------------- | --------- | ------------------------------------------------ |
+| `domain`                      | `String`       | `""`      | Base domain for relative URLs                    |
+| `heading_style`               | `HeadingStyle` | `Atx`     | `Atx` (`# H`) or `Setext` (underlined h1/h2)     |
+| `em_delimiter`                | `String`       | `"*"`     | `"*"` or `"_"`                                   |
+| `strong_delimiter`            | `String`       | `"**"`    | `"**"` or `"__"`                                 |
+| `horizontal_rule`             | `String`       | `"* * *"` | any thematic break (≥3 of `*`/`_`/`-`)           |
+| `bullet_list_marker`          | `String`       | `"-"`     | `"-"`, `"+"` or `"*"`                            |
+| `code_block_fence`            | `String`       | `"```"`   | `"```"` or `"~~~"`                               |
+| `escape_mode`                 | `EscapeMode`   | `Smart`   | `Smart` or `Disabled`                            |
+| `link_empty_href_behavior`    | `LinkBehavior` | `Render`  | `Render` keeps `[text]()`, `Skip` drops the link |
+| `link_empty_content_behavior` | `LinkBehavior` | `Render`  | `Render` keeps `[](href)`, `Skip` drops the link |
+| `list_end_comment`            | `Bool`         | `true`    | insert `<!--THE END-->` between adjacent lists   |
 
 Invalid option values raise `ConvertError::InvalidConfig`.
 
