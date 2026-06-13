@@ -1,0 +1,39 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hustcer/html2md"
+
+import {
+  "bobzhang/html_parser/dom",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn convert(String, domain? : String, heading_style? : HeadingStyle, em_delimiter? : String, strong_delimiter? : String, horizontal_rule? : String, bullet_list_marker? : String, code_block_fence? : String, escape_mode? : EscapeMode, link_empty_href_behavior? : LinkBehavior, link_empty_content_behavior? : LinkBehavior, list_end_comment? : Bool) -> String raise ConvertError
+
+pub fn convert_dom(@dom.Node, domain? : String, heading_style? : HeadingStyle, em_delimiter? : String, strong_delimiter? : String, horizontal_rule? : String, bullet_list_marker? : String, code_block_fence? : String, escape_mode? : EscapeMode, link_empty_href_behavior? : LinkBehavior, link_empty_content_behavior? : LinkBehavior, list_end_comment? : Bool) -> String raise ConvertError
+
+// Errors
+pub(all) suberror ConvertError {
+  InvalidConfig(String)
+  ParseFailed(String)
+} derive(@debug.Debug)
+
+// Types and methods
+pub(all) enum EscapeMode {
+  Smart
+  Disabled
+} derive(Eq, @debug.Debug)
+
+pub(all) enum HeadingStyle {
+  Atx
+  Setext
+} derive(Eq, @debug.Debug)
+
+pub(all) enum LinkBehavior {
+  Render
+  Skip
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+
