@@ -8,6 +8,28 @@ pub const MARKER_ESCAPING : Char = '\x07'
 
 pub fn escape_content(String, enabled? : Bool) -> String
 
+pub fn is_atx_header(Array[Char], Int) -> Int
+
+pub fn is_backslash(Array[Char], Int) -> Int
+
+pub fn is_block_quote(Array[Char], Int) -> Int
+
+pub fn is_divider(Array[Char], Int) -> Int
+
+pub fn is_fenced_code(Array[Char], Int) -> Int
+
+pub fn is_image_or_link(Array[Char], Int) -> Int
+
+pub fn is_inline_code(Array[Char], Int) -> Int
+
+pub fn is_italic_or_bold(Array[Char], Int) -> Int
+
+pub fn is_ordered_list(Array[Char], Int) -> Int
+
+pub fn is_setext_header(Array[Char], Int) -> Int
+
+pub fn is_unordered_list(Array[Char], Int) -> Int
+
 pub let marker_code_block_newline : String
 
 pub let marker_escaping : String

@@ -9,9 +9,9 @@
 | P0 脚手架 | moon.mod/moon.pkg/依赖/冒烟 | complete |
 | P1 DOM 适配层 | internal/domext | complete |
 | P2 文本工具+折叠 | internal/textutils、internal/collapse | complete |
-| P3 引擎+基础行为 | render 骨架、fallback、remove、文本管线、post-render | in_progress |
-| P4 commonmark 渲染 | 全部 render_* + internal/domutils 变换 | pending |
-| P5 智能转义 | internal/escape：marker + 11 un-escaper | pending |
+| P3 引擎+基础行为 | render 骨架、fallback、remove、文本管线、post-render | complete |
+| P4 commonmark 渲染 | 全部 render_* + internal/domutils 变换 | complete |
+| P5 智能转义 | internal/escape：marker + 11 un-escaper | in_progress |
 | P6 收尾 | url.mbt、配置校验、README.mbt.md、moon info | pending |
 
 ## Key Decisions

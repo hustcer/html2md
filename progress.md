@@ -8,3 +8,5 @@
 - P2 开始：textutils + collapse
 - P2 完成并提交：textutils（9 测试）+ collapse（14 测试），31/31 绿
 - P3 开始：渲染引擎骨架
+- P4 完成并提交 0e42a7a：全部 commonmark 渲染器 + 9 个 domutils 变换 + url.mbt + 完整管线，53/53 绿；快照逐条对照 Go 预期吻合（补零序号/域名拼接/动态反引号/列表结束注释）
+- P5 开始：智能转义 11 个 un-escaper

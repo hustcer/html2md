@@ -17,8 +17,12 @@ fn unescape(ctx : RenderCtx, content : String) -> String {
 }
 
 ///|
-/// The commonmark un-escaper handlers, in registration order. Filled in P5;
-/// with an empty list `unescape` simply strips the markers (no escaping).
+/// The commonmark un-escaper handlers, in the same registration order as the
+/// Go commonmark plugin.
 fn commonmark_unescapers() -> Array[@escape.UnEscaper] {
-  []
+  [
+    @escape.is_italic_or_bold, @escape.is_block_quote, @escape.is_atx_header, @escape.is_setext_header,
+    @escape.is_divider, @escape.is_ordered_list, @escape.is_unordered_list, @escape.is_image_or_link,
+    @escape.is_fenced_code, @escape.is_inline_code, @escape.is_backslash,
+  ]
 }
