@@ -1,0 +1,68 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hustcer/html2md/internal/domext"
+
+import {
+  "bobzhang/html_parser/dom",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn attr_or(@dom.Node, String, String) -> String
+
+pub fn dump(@dom.Node) -> String
+
+pub fn first_child(@dom.Node) -> @dom.Node?
+
+pub fn index_in_parent(@dom.Node) -> Int
+
+pub fn insert_after(@dom.Node, @dom.Node) -> Unit
+
+pub fn is_block_name(String) -> Bool
+
+pub fn is_block_tag_type(String) -> Bool
+
+pub fn is_element(@dom.Node) -> Bool
+
+pub fn is_heading_name(String) -> Bool
+
+pub fn is_inline_name(String) -> Bool
+
+pub fn is_preformatted_name(String) -> Bool
+
+pub fn is_removed_name(String) -> Bool
+
+pub fn is_text(@dom.Node) -> Bool
+
+pub fn is_void_name(String) -> Bool
+
+pub fn last_child(@dom.Node) -> @dom.Node?
+
+pub fn next_sibling(@dom.Node) -> @dom.Node?
+
+pub fn node_name(@dom.Node) -> String
+
+pub fn prev_sibling(@dom.Node) -> @dom.Node?
+
+pub fn remove_node(@dom.Node) -> Unit
+
+pub fn rename(@dom.Node, String) -> @dom.Node
+
+pub fn replace_node(@dom.Node, @dom.Node) -> Unit
+
+pub fn set_text(@dom.Node, String) -> @dom.Node
+
+pub fn tag_type(String) -> TagType?
+
+// Errors
+
+// Types and methods
+pub(all) enum TagType {
+  Block
+  Inline
+  Remove
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits
+
