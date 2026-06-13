@@ -4,10 +4,23 @@ Convert HTML to Markdown (CommonMark) in MoonBit.
 
 This is a MoonBit port of the Go library
 [JohannesKaufmann/html-to-markdown v2](https://github.com/JohannesKaufmann/html-to-markdown).
-HTML parsing is delegated to
-[`bobzhang/html_parser`](https://github.com/bobzhang/html_parser); the full
-conversion pipeline (DOM normalization, whitespace collapsing, commonmark
-rendering and smart escaping) is reimplemented here.
+
+## Features
+
+- HTML-string entry via `convert`, plus `convert_dom` for already-parsed DOM
+  nodes, with the same CommonMark option set on both paths.
+- Markdown image rendering for `<img>` and GFM pipe-table rendering for
+  `<table>`.
+- GFM strikethrough for `s`, `del` and `strike` tags.
+- Table-specific behavior for escaped pipes, header alignment markers, simple
+  `colspan`/`rowspan` placeholder cells and `role="presentation"` fallback.
+- Smart escaping that protects fake Markdown syntax in text while preserving
+  real formatting produced from HTML tags.
+- Configurable CommonMark output for heading style, emphasis delimiters,
+  horizontal rules, bullet markers, code fences, empty-link behavior and list
+  separation comments.
+- Relative-link resolution against `domain`, plus RFC 3986 query-component
+  normalization for spaces, Unicode, valid percent octets and literal `+`.
 
 ## Install
 
@@ -165,6 +178,17 @@ test "domain" {
 | `list_end_comment`            | `Bool`         | `true`    | insert `<!--THE END-->` between adjacent lists   |
 
 Invalid option values raise `ConvertError::InvalidConfig`.
+
+## Development
+
+Useful validation commands before committing:
+
+```sh
+moon fmt
+moon check --target all
+moon test --target all
+moon info
+```
 
 ## License
 
