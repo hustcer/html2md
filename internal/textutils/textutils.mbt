@@ -77,7 +77,7 @@ pub fn delimiter_for_every_line(text : String, delimiter : String) -> String {
   let out = StringBuilder(size_hint=text.length())
   let lines = text.split("\n").collect()
   for i, line in lines {
-    let (left, trimmed, right) = surrounding_spaces(line.to_string())
+    let (left, trimmed, right) = surrounding_spaces(line.to_owned())
     if trimmed is "" {
       // For empty lines, we don't need a delimiter
       out.write_string(left)
@@ -108,7 +108,7 @@ pub fn escape_multiline(content : String) -> String {
   let output = StringBuilder(size_hint=content.length())
   for i, line in lines {
     let mut start = 0
-    let line = line.to_string()
+    let line = line.to_owned()
     while start < line.length() {
       match line.get_char(start) {
         Some(ch) if ch.is_whitespace() => start += ch.utf16_len()

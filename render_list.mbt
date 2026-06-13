@@ -1,9 +1,8 @@
 ///|
 fn get_start_at(node : @dom.Node) -> Int {
   let raw = @domext.attr_or(node, "start", "1")
-  match (try? @strconv.parse_int(raw)) {
-    Ok(value) => value
-    Err(_) => 1
+  @string.parse_int(raw) catch {
+    _ => 1
   }
 }
 
@@ -48,7 +47,7 @@ fn render_multi_line_list_item(
   let lines = content.split("\n").collect()
   for i, line in lines {
     let line = line
-      .to_string()
+      .to_owned()
       .replace_all(
         old=@escape.marker_code_block_newline,
         new=indented_code_newline,

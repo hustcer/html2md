@@ -3,6 +3,20 @@
 ///
 /// Mirrors `htmltomarkdown.ConvertString` of the Go library
 /// JohannesKaufmann/html-to-markdown v2 (base + commonmark plugins).
+///
+/// # Example
+/// ```mbt check
+/// test {
+///   inspect(
+///     @html2md.convert("<h1>Title</h1><p>Some <b>bold</b> text.</p>"),
+///     content=(
+///       #|# Title
+///       #|
+///       #|Some **bold** text.
+///     ),
+///   )
+/// }
+/// ```
 pub fn convert(
   html : String,
   domain? : String = "",
@@ -18,7 +32,7 @@ pub fn convert(
   list_end_comment? : Bool = true,
 ) -> String raise ConvertError {
   let doc = @parser.parse(html, sanitize=false) catch {
-    err => raise ConvertError::ParseFailed("\{to_repr(err)}")
+    err => raise ParseFailed("\{to_repr(err)}")
   }
   convert_dom(
     doc.root,

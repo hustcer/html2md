@@ -4,7 +4,7 @@ priv enum MarkdownStructure {
   LeafBlock
   Inline
   Uncategorized
-} derive(Eq)
+}
 
 ///|
 fn get_markdown_structure(name : String) -> MarkdownStructure {

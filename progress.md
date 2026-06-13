@@ -10,3 +10,5 @@
 - P3 开始：渲染引擎骨架
 - P4 完成并提交 0e42a7a：全部 commonmark 渲染器 + 9 个 domutils 变换 + url.mbt + 完整管线，53/53 绿；快照逐条对照 Go 预期吻合（补零序号/域名拼接/动态反引号/列表结束注释）
 - P5 开始：智能转义 11 个 un-escaper
+- P5 完成并提交 1044136：11 个 un-escaper（char 空间）+ 注册 + 10 转义测试，63/63 绿；非对称转义经 metadata golden 坐实
+- P6 开始：url 测试、配置校验对齐、README.mbt.md、moon info 固化

@@ -57,8 +57,11 @@ test "convert: angle brackets entity-escaped" {
 ///|
 test "convert: invalid option raises" {
   try @html2md.convert("<p>x</p>", em_delimiter="!") catch {
-    @html2md.ConvertError::InvalidConfig(msg) =>
-      inspect(msg, content="invalid em_delimiter \"!\": must be \"*\" or \"_\"")
+    InvalidConfig(msg) =>
+      inspect(
+        msg,
+        content="invalid em_delimiter \"!\": must be exactly 1 character of \"*\" or \"_\"",
+      )
     _ => fail("unexpected error kind")
   } noraise {
     _ => fail("expected to fail")

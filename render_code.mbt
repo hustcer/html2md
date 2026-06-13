@@ -4,7 +4,7 @@
 fn get_code_language(node : @dom.Node) -> String {
   let class = @domext.attr_or(node, "class", "")
   for part in class.split(" ") {
-    let part = part.to_string()
+    let part = part.to_owned()
     if part.contains("language-") || part.contains("lang-") {
       return part
         .replace_all(old="language-", new="")
