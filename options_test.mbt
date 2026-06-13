@@ -148,12 +148,24 @@ test "validation: invalid option values raise InvalidConfig" {
     content="invalid em_delimiter \"__\": must be exactly 1 character of \"*\" or \"_\"",
   )
   inspect(
+    expect_invalid(() => @html2md.convert("<b>x</b>", em_delimiter="a*")),
+    content="invalid em_delimiter \"a*\": must be exactly 1 character of \"*\" or \"_\"",
+  )
+  inspect(
     expect_invalid(() => @html2md.convert("<b>x</b>", strong_delimiter="_")),
     content="invalid strong_delimiter \"_\": must be exactly 2 characters of \"**\" or \"__\"",
   )
   inspect(
+    expect_invalid(() => @html2md.convert("<b>x</b>", strong_delimiter="**x")),
+    content="invalid strong_delimiter \"**x\": must be exactly 2 characters of \"**\" or \"__\"",
+  )
+  inspect(
     expect_invalid(() => @html2md.convert("<b>x</b>", horizontal_rule="* *")),
     content="invalid horizontal_rule \"* *\": must be at least 3 characters of \"*\", \"_\" or \"-\"",
+  )
+  inspect(
+    expect_invalid(() => @html2md.convert("<b>x</b>", horizontal_rule="***x")),
+    content="invalid horizontal_rule \"***x\": must be at least 3 characters of \"*\", \"_\" or \"-\"",
   )
   inspect(
     expect_invalid(() => @html2md.convert("<b>x</b>", horizontal_rule="+++")),

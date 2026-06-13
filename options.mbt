@@ -16,15 +16,26 @@ priv struct Options {
 }
 
 ///|
-/// Count non-overlapping occurrences of a single character in a string.
-fn count_char(s : String, target : Char) -> Int {
+/// True when `s` is a thematic break line: at least three matching `*`, `_`,
+/// or `-` marker chars, with optional spaces between them.
+fn is_horizontal_rule(s : String) -> Bool {
   let mut n = 0
+  let mut marker : Char? = None
   for ch in s {
-    if ch == target {
-      n += 1
+    if ch is ' ' {
+      continue
     }
+    if !(ch is ('*' | '_' | '-')) {
+      return false
+    }
+    match marker {
+      None => marker = Some(ch)
+      Some(prev) if prev == ch => ()
+      Some(_) => return false
+    }
+    n += 1
   }
-  n
+  n >= 3
 }
 
 ///|
@@ -43,22 +54,19 @@ fn Options::build(
   list_end_comment~ : Bool,
 ) -> Options raise ConvertError {
   // em: exactly one "*" or one "_"
-  if count_char(em_delimiter, '_') != 1 && count_char(em_delimiter, '*') != 1 {
+  if !(em_delimiter is ("*" | "_")) {
     raise InvalidConfig(
       "invalid em_delimiter \"\{em_delimiter}\": must be exactly 1 character of \"*\" or \"_\"",
     )
   }
   // strong: exactly two "*" or two "_"
-  if count_char(strong_delimiter, '_') != 2 &&
-    count_char(strong_delimiter, '*') != 2 {
+  if !(strong_delimiter is ("**" | "__")) {
     raise InvalidConfig(
       "invalid strong_delimiter \"\{strong_delimiter}\": must be exactly 2 characters of \"**\" or \"__\"",
     )
   }
   // horizontal rule: at least 3 of "*", "_" or "-"
-  if count_char(horizontal_rule, '*') < 3 &&
-    count_char(horizontal_rule, '_') < 3 &&
-    count_char(horizontal_rule, '-') < 3 {
+  if !is_horizontal_rule(horizontal_rule) {
     raise InvalidConfig(
       "invalid horizontal_rule \"\{horizontal_rule}\": must be at least 3 characters of \"*\", \"_\" or \"-\"",
     )

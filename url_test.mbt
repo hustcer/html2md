@@ -98,6 +98,50 @@ test "url: query parameter order preserved" {
 }
 
 ///|
+test "url: query-only reference replaces base query" {
+  inspect(
+    link("?p=2", domain="https://example.com/path?a=1"),
+    content=(
+      #|[x](https://example.com/path?p=2)
+    ),
+  )
+  inspect(
+    link("?p=2", domain="https://example.com"),
+    content=(
+      #|[x](https://example.com?p=2)
+    ),
+  )
+  inspect(
+    link("#new", domain="https://example.com/path?a=1#old"),
+    content=(
+      #|[x](https://example.com/path?a=1#new)
+    ),
+  )
+}
+
+///|
+test "url: relative path dot segments are normalized" {
+  inspect(
+    link("../img.png", domain="https://example.com/docs/page.html"),
+    content=(
+      #|[x](https://example.com/img.png)
+    ),
+  )
+  inspect(
+    link("./img.png", domain="https://example.com/docs/page.html"),
+    content=(
+      #|[x](https://example.com/docs/img.png)
+    ),
+  )
+  inspect(
+    link("../img.png?q=1#h", domain="https://example.com/docs/page.html?a=1"),
+    content=(
+      #|[x](https://example.com/img.png?q=1#h)
+    ),
+  )
+}
+
+///|
 test "url: special characters percent-encoded" {
   inspect(
     link("https://Open Demo"),

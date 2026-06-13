@@ -109,8 +109,8 @@ fn is_relative_url(url : String, scheme : String?) -> Bool {
 
 ///|
 /// Join a relative URL onto a base domain (which may or may not carry a
-/// scheme). Mirrors the practical outcome of Go's `ResolveReference` for the
-/// common cases of absolute-path / relative-path references.
+/// scheme). Mirrors RFC 3986 relative reference resolution for path, query,
+/// and fragment handling.
 fn join_url(domain : String, raw : String) -> String {
   let (scheme_prefix, host_and_path) = split_scheme(domain)
   let scheme_prefix = if scheme_prefix is "" {
@@ -118,28 +118,107 @@ fn join_url(domain : String, raw : String) -> String {
   } else {
     scheme_prefix
   }
-  // Separate host from any path on the base.
-  let slash = find_char(host_and_path, '/')
-  let host = match slash {
-    Some(idx) => host_and_path[0:idx].to_owned()
-    None => host_and_path
+  let (host, base_ref) = split_authority_ref(host_and_path)
+  let base_without_fragment = strip_fragment(base_ref)
+  let base_path = strip_query(base_without_fragment)
+  if raw is "" {
+    return scheme_prefix + host + base_without_fragment
   }
-  let base_path = match slash {
-    Some(idx) => host_and_path[idx:].to_owned()
-    None => "/"
+  if raw.has_prefix("#") {
+    return scheme_prefix + host + base_without_fragment + raw
   }
-  if raw.has_prefix("#") || raw.has_prefix("?") {
+  if raw.has_prefix("?") {
     return scheme_prefix + host + base_path + raw
   }
+  let (raw_path, raw_suffix) = split_path_suffix(raw)
   if raw.has_prefix("/") {
-    scheme_prefix + host + raw
+    scheme_prefix + host + remove_dot_segments(raw_path) + raw_suffix
   } else {
-    // Relative to the base path's directory.
-    let dir = match last_index_char(base_path, '/') {
+    let merged = merge_relative_path(base_path, raw_path)
+    scheme_prefix + host + remove_dot_segments(merged) + raw_suffix
+  }
+}
+
+///|
+/// Separate authority from the path/query/fragment reference.
+fn split_authority_ref(s : String) -> (String, String) {
+  for i, ch in s {
+    if ch is ('/' | '?' | '#') {
+      return (s[0:i].to_owned(), s[i:].to_owned())
+    }
+  }
+  (s, "")
+}
+
+///|
+fn strip_fragment(s : String) -> String {
+  match find_char(s, '#') {
+    Some(idx) => s[0:idx].to_owned()
+    None => s
+  }
+}
+
+///|
+fn strip_query(s : String) -> String {
+  match find_char(s, '?') {
+    Some(idx) => s[0:idx].to_owned()
+    None => s
+  }
+}
+
+///|
+/// Split a relative reference into path and query/fragment suffix.
+fn split_path_suffix(s : String) -> (String, String) {
+  for i, ch in s {
+    if ch is ('?' | '#') {
+      return (s[0:i].to_owned(), s[i:].to_owned())
+    }
+  }
+  (s, "")
+}
+
+///|
+/// Merge a relative reference path against the base path's directory.
+fn merge_relative_path(base_path : String, raw_path : String) -> String {
+  let dir = if base_path is "" {
+    "/"
+  } else {
+    match last_index_char(base_path, '/') {
       Some(idx) => base_path[0:idx + 1].to_owned()
       None => "/"
     }
-    scheme_prefix + host + dir + raw
+  }
+  dir + raw_path
+}
+
+///|
+/// Remove "." and ".." path segments after RFC 3986 section 5.2.4.
+fn remove_dot_segments(path : String) -> String {
+  let leading_slash = path.has_prefix("/")
+  let trailing_slash = path.has_suffix("/") ||
+    path.has_suffix("/.") ||
+    path.has_suffix("/..")
+  let segments : Array[String] = []
+  let mut first = true
+  for part_view in path.split("/") {
+    let part = part_view.to_owned()
+    if first && leading_slash && part is "" {
+      first = false
+      continue
+    }
+    first = false
+    match part {
+      "." => ()
+      ".." => ignore(segments.pop())
+      _ => segments.push(part)
+    }
+  }
+  let joined = segments.join("/")
+  let normalized = if leading_slash { "/" + joined } else { joined }
+  if trailing_slash && normalized != "/" {
+    normalized + "/"
+  } else {
+    normalized
   }
 }
 
