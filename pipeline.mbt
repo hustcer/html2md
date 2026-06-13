@@ -33,9 +33,22 @@ fn name_is_bold_or_italic(node : @dom.Node) -> Bool {
 }
 
 ///|
+fn name_is_strikethrough(node : @dom.Node) -> Bool {
+  match @domext.node_name(node) {
+    "s" | "del" | "strike" => true
+    _ => false
+  }
+}
+
+///|
 fn name_is_both_bold_or_italic(a : @dom.Node, b : @dom.Node) -> Bool {
   (name_is_bold(a) && name_is_bold(b)) ||
   (name_is_italic(a) && name_is_italic(b))
+}
+
+///|
+fn name_is_both_strikethrough(a : @dom.Node, b : @dom.Node) -> Bool {
+  name_is_strikethrough(a) && name_is_strikethrough(b)
 }
 
 ///|
@@ -72,6 +85,10 @@ fn pre_render_commonmark(doc : @dom.Node) -> Unit {
   // Bold / Italic
   @domutils.remove_redundant(doc, name_is_both_bold_or_italic)
   @domutils.merge_adjacent(doc, name_is_bold_or_italic)
+
+  // Strikethrough
+  @domutils.remove_redundant(doc, name_is_both_strikethrough)
+  @domutils.merge_adjacent(doc, name_is_strikethrough)
 
   // Code
   @domutils.remove_empty_code(doc)

@@ -1,6 +1,7 @@
 # Findings
 
 ## 参考库（Go html-to-markdown v2）关键事实
+
 - 四阶段管线：Parse → PreRender(DOM 变换) → Render(递归) → PostRender(文本收尾)
 - marker：转义占位 0x07（单字节）；代码块换行 U+F002
 - EscapedChar 集合：`\ * _ - + . > | $ # = [ ] ( ) ! ~ ` " '`
@@ -14,31 +15,35 @@
 - link：href trim + AssembleAbsoluteURL；空 href 且 Skip→TryNext；title 换行→空格；内容空白外移；TrimConsecutiveNewlines+EscapeMultiLine；href=="" 时 title 置空；is_inside_link ctx 中 text 的 marker+']' → '\]'
 - image：src 空→TryNext；alt/title 换行→空格；alt 的 [] 加 \（若前面无 \）
 - blockquote：TrimSpace→空则成功返回；TrimConsecutiveNewlines+TrimUnnecessaryHardLineBreaks→PrefixLines("> ")→\n\n 包裹
-- br→"  \n"；hr→"\n\n* * *\n\n"
+- br→" \n"；hr→"\n\n\* \* \*\n\n"
 - collapse 算法：见 collapse.go 移植注释（prevText/keepLeadingWs 游标机）
 - URL：`#` 直返；\n→%0A \t→%09；data: URI 只做 percentEncodingReplacer（空格[]()<> → %20 %5B %5D %28 %29 %3C %3E）；有 domain 时按 RFC 3986 relative reference 解析 path/query/fragment 并移除 dot-segments；query 组件按 RFC 3986 `pchar / "/" / "?"` 重编码，保留合法 `%HH` 和 `+`，非法 `%`→`%25`，空格→`%20`，非 ASCII→UTF-8 百分号编码。
 - 空文档：Go 版 html.Parse 永不失败，空输入产出空输出（无错误）；NewConverter 校验错误在 ConvertNode 时返回
 
 ## 依赖（bobzhang/html_parser@0.1.7）
+
 - `@parser.parse(html, sanitize=false) -> ParsedHtml raise @core.HtmlError`；`ParsedHtml.root : @dom.Node`（pub 字段）
 - `@dom.Node`：pub(all) struct {kind, name, ns, attrs: Map[String,String?], data, children: Array[Node], mut parent, ...}；方法 append_child/insert_before/remove_child/replace_child/clone_node/text()
 - NodeKind: Document|Fragment|Element|Text|Comment|Doctype
 - name/data/attrs 字段不可变（attrs Map 本身可变 set）；children 是 Array 可变
-- async 依赖只在其 cmd/* 包；库本体不沾
+- async 依赖只在其 cmd/\* 包；库本体不沾
 - 其 to_markdown 不复用（img/table 直出 HTML、盲转义、零配置）
 
 ## MoonBit 注意事项
+
 - 字符串 UTF-16；s[i] 是 UInt16 码元；get_char(i) 安全
 - 测试用 inspect + moon test --update
 - moon.pkg 新格式（import {...} / options(...)）
 
 ## P7 设计约束
+
 - strikethrough 先作为固定 commonmark/GFM 渲染器加入，不开放 Go 版插件注册机制；目标标签覆盖 `s`、`del`、`strike`。
 - table 先输出 GFM pipe table：header 行、delimiter 行、body 行；单元格内容复用现有 inline 渲染后压成单行，并转义 pipe。
-- table 不在 P7 内实现 alignment/colspan/rowspan 的完整 HTML 表格模型；复杂表格优先保持可读 Markdown，不引入公共 API。
+- table 已覆盖固定渲染器内可支持的 align、简单 colspan/rowspan 空占位、presentation table fallback；不引入 Go table 插件的 option API（span mirror、skip empty rows、header promotion、cell padding/newline behavior 等）。复杂表格优先保持可读 Markdown，不引入公共 API。
 - `bobzhang/html_parser` 会把裸 `<table><tr>...` 规范化为 `table > tbody > tr`，table 行收集需要递归穿过 `thead/tbody/tfoot`。
 
 ## URL query 编码取舍
+
 - 标准依据：RFC 3986 的 query 语法是 `*( pchar / "/" / "?" )`，其中 `pchar` 包含 unreserved、pct-encoded、sub-delims、`:`、`@`；WHATWG URL 的 query percent-encode 也确认空格、`#`、`<`、`>`、控制字符和非 ASCII 需要编码，且只有 `application/x-www-form-urlencoded` 才把空格编码成 `+`。
 - 本实现做组件级重编码：只处理 `?` 到 `#` 之间的 query，不对 path/fragment 套用 query 规则；合法 `%HH` 保留并规范为大写 hex，裸 `%` 编为 `%25`。
 - 不按 Go 版 `QueryUnescape`/`QueryEscape` 分段重写键值对，因为那会把 `+` 当空格或改变部分原始 query 语义；这里优先遵循 URL 标准和行业通用行为。

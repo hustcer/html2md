@@ -65,6 +65,37 @@ test "golden bold: empty" {
 }
 
 ///|
+test "commonmark italic plugin cases from Go" {
+  inspect(
+    @html2md.convert("<em>Italic</em>Normal<em>Italic</em>"),
+    content="*Italic*Normal*Italic*",
+  )
+  inspect(
+    @html2md.convert("Normal<em>Italic</em>Normal"),
+    content="Normal*Italic*Normal",
+  )
+  inspect(
+    @html2md.convert("<em>  A  </em><em>  B  </em>  <em>  C  </em>"),
+    content="*A B* *C*",
+  )
+  inspect(
+    @html2md.convert("<em>  A  <em>  B  </em>  C  </em>"),
+    content="*A B C*",
+  )
+  inspect(@html2md.convert("before<i></i>after"), content="beforeafter")
+  inspect(@html2md.convert("before<i> </i>after"), content="before after")
+  inspect(@html2md.convert("before <i> </i> after"), content="before after")
+  inspect(
+    @html2md.convert("before<i>\u{a0}</i>after"),
+    content="before\u{a0}after",
+  )
+  inspect(
+    @html2md.convert("before<i>\u{200b}</i>after"),
+    content="before*\u{200b}*after",
+  )
+}
+
+///|
 test "golden bold: intra-word" {
   inspect(
     @html2md.convert("<p> normal<b>bold</b>normal </p>"),
