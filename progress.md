@@ -14,3 +14,15 @@
 - P6 开始：url 测试、配置校验对齐、README.mbt.md、moon info 固化
 - P6 完成并提交 006c12c：配置校验对齐 Go、url_test、domutils 单测、README.mbt.md（文档即测试）、清零警告（含 warning 73），三后端各 83/83 绿
 - P0~P6 全部完成 ✅
+
+## Test migration pass (后续)
+- 用户要求核查所有 Go 测试用例迁移情况
+- escape elem 单元测试 → elems_test.mbt（11 un-escaper, char 空间）
+- escape util/escapeContent/unEscapeContent → util_wbtest.mbt + escape_wbtest.mbt
+- textutils 全量子用例 → textutils_test.mbt
+- collapse whitespace_test → whitespace_wbtest.mbt
+- domutils 8 变换全量 → domutils_test.mbt（手写期望树对照 Go tester）
+- 8 个 commonmark golden 文件 → golden_{blockquote,bold,code,heading,image,link,list,metadata}_test.mbt（按注释拆片段，逐字节对照 .out.md）
+- url_test 全量结构性用例 + option-func + validation + Windows CR + Example → url_test/options_test/convert_basic_test
+- 跳过（有原因）：converter 插件注册/优先级/ctx 机制测试、base/renderers 扩展 API、DataRace、strikethrough/table（P7）、cli
+- 223/223 三后端全绿
