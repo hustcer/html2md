@@ -9,3 +9,7 @@ import {
   "hustcer/html2md/internal/escape",
   "moonbitlang/core/string",
 }
+
+import {
+  "bobzhang/html_parser/parser",
+} for "test"

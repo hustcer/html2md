@@ -67,3 +67,44 @@ test "convert: invalid option raises" {
     _ => fail("expected to fail")
   }
 }
+
+///|
+/// Ported from convert_test.go TestConvertString_WindowsCarriageReturn.
+test "convert: windows carriage returns" {
+  inspect(@html2md.convert("\r\n\r\n\r\n\r\n"), content="")
+  inspect(
+    @html2md.convert("<strong>Bold\r\n\r\n\r\n\r\nText</strong>"),
+    content="**Bold Text**",
+  )
+  inspect(
+    @html2md.convert("<p>Some\r\n\r\n\r\n\r\nText</p>"),
+    content="Some Text",
+  )
+  inspect(
+    @html2md.convert("<ul><li>Some\r\n\r\n\r\n\r\nText</li></ul>"),
+    content="- Some Text",
+  )
+}
+
+///|
+/// Ported from the Example* functions in convert_test.go.
+test "convert: doc examples" {
+  inspect(
+    @html2md.convert("<strong>Bold Text</strong>"),
+    content="**Bold Text**",
+  )
+  inspect(
+    @html2md.convert(
+      "<img src=\"/assets/image.png\" />",
+      domain="https://example.com",
+    ),
+    content="![](https://example.com/assets/image.png)",
+  )
+}
+
+///|
+/// convert_dom mirrors ConvertNode: feed an already-parsed tree.
+test "convert_dom: from a parsed node" {
+  let doc = @parser.parse("<strong>Bold Text</strong>", sanitize=false)
+  inspect(@html2md.convert_dom(doc.root), content="**Bold Text**")
+}
