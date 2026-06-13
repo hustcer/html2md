@@ -52,6 +52,20 @@ pub fn is_italic_or_bold(chars : Array[Char], index : Int) -> Int {
 }
 
 ///|
+/// `~~` starts or ends GFM strikethrough when the second tilde is adjacent
+/// modulo escape markers.
+pub fn is_strikethrough(chars : Array[Char], index : Int) -> Int {
+  if chars[index] != '~' {
+    return -1
+  }
+  if get_next(chars, index) == '~' {
+    1
+  } else {
+    -1
+  }
+}
+
+///|
 /// `>` is a block quote only at the (whitespace-only) start of a line (port
 /// of `escape.IsBlockQuote`).
 pub fn is_block_quote(chars : Array[Char], index : Int) -> Int {

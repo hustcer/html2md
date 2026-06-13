@@ -66,6 +66,33 @@ test "blocks" {
 }
 ```
 
+### GFM tables and strikethrough
+
+Pipes inside table cells are escaped, and `s`/`del`/`strike` tags render as
+GFM strikethrough:
+
+```mbt check
+///|
+test "gfm" {
+  let html =
+    #|<p><del>old</del> value</p>
+    #|<table>
+    #|  <tr><th>Name</th><th>Value</th></tr>
+    #|  <tr><td>A</td><td>1 | 2</td></tr>
+    #|</table>
+  inspect(
+    @html2md.convert(html),
+    content=(
+      #|~~old~~ value
+      #|
+      #|| Name | Value |
+      #|| --- | --- |
+      #|| A | 1 \| 2 |
+    ),
+  )
+}
+```
+
 ### Smart escaping
 
 Markdown-special characters in *text* are escaped only when they would

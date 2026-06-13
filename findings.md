@@ -31,3 +31,9 @@
 - 字符串 UTF-16；s[i] 是 UInt16 码元；get_char(i) 安全
 - 测试用 inspect + moon test --update
 - moon.pkg 新格式（import {...} / options(...)）
+
+## P7 设计约束
+- strikethrough 先作为固定 commonmark/GFM 渲染器加入，不开放 Go 版插件注册机制；目标标签覆盖 `s`、`del`、`strike`。
+- table 先输出 GFM pipe table：header 行、delimiter 行、body 行；单元格内容复用现有 inline 渲染后压成单行，并转义 pipe。
+- table 不在 P7 内实现 alignment/colspan/rowspan 的完整 HTML 表格模型；复杂表格优先保持可读 Markdown，不引入公共 API。
+- `bobzhang/html_parser` 会把裸 `<table><tr>...` 规范化为 `table > tbody > tr`，table 行收集需要递归穿过 `thead/tbody/tfoot`。

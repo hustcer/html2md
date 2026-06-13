@@ -26,3 +26,13 @@
 - url_test 全量结构性用例 + option-func + validation + Windows CR + Example → url_test/options_test/convert_basic_test
 - 跳过（有原因）：converter 插件注册/优先级/ctx 机制测试、base/renderers 扩展 API、DataRace、strikethrough/table（P7）、cli
 - 223/223 三后端全绿
+
+## P7 session (GFM table + strikethrough)
+- 用户要求先完成 P7 的 GFM table 与 strikethrough `~~`，再更新 PLAN.md，并继续使用 planning-with-files。
+- 已恢复规划上下文：P0-P6 完成，P7 原先作为可选项跳过。
+- 当前计划：先实现 strikethrough 固定渲染器，再实现 GFM table 固定渲染器，补黑盒测试和 README/PLAN，同步 `moon fmt/check/test/info` 验证。
+- 已实现固定渲染器：`render_strikethrough.mbt` 处理 `s/del/strike`，`render_table.mbt` 处理 GFM pipe table；普通文本 `~~` 加入智能转义。
+- 已新增 `gfm_p7_test.mbt`，覆盖删除线、假删除线文本、thead/tbody 表格、tbody-only 表格、行内内容和 `|` 转义；`moon test gfm_p7_test.mbt --target all` 四后端 5/5 通过。
+- 已更新 README.mbt.md 和 PLAN.md：P7 table/strikethrough 标记为已内置支持，Renderer hooks 移到后续 P8。
+- 验证完成：`moon fmt`、`moon check --target all --diagnostic-limit 200`、`moon test --target all`（四后端 231/231 通过）、`moon info`。
+- `planning-with-files` 的 `check-complete.sh` 对当前 legacy markdown 表格未识别出 phases，输出 `0/0 phases complete`；已人工核对 `task_plan.md` 中 P7a-P7d 均为 complete。

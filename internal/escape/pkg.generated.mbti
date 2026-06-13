@@ -28,6 +28,8 @@ pub fn is_ordered_list(Array[Char], Int) -> Int
 
 pub fn is_setext_header(Array[Char], Int) -> Int
 
+pub fn is_strikethrough(Array[Char], Int) -> Int
+
 pub fn is_unordered_list(Array[Char], Int) -> Int
 
 pub let marker_code_block_newline : String

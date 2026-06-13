@@ -40,6 +40,11 @@ fn render_element(
       render_bold_italic(ctx, out, node)
       true
     }
+    "s" | "del" | "strike" => {
+      render_strikethrough(ctx, out, node)
+      true
+    }
+    "table" => render_table(ctx, out, node)
     "hr" => {
       render_divider(ctx, out, node)
       true
