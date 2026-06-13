@@ -132,14 +132,25 @@ pub fn attr_or(node : @dom.Node, name : String, fallback : String) -> String {
 }
 
 ///|
+/// Escape control characters for single-line display in `dump`.
+fn escape_data(data : String) -> String {
+  data
+  .replace_all(old="\\", new="\\\\")
+  .replace_all(old="\n", new="\\n")
+  .replace_all(old="\t", new="\\t")
+  .replace_all(old="\r", new="\\r")
+  .replace_all(old="\"", new="\\\"")
+}
+
+///|
 /// Debug representation of a DOM subtree for snapshot tests.
 pub fn dump(node : @dom.Node) -> String {
   let out = StringBuilder()
   fn walk(current : @dom.Node, depth : Int) {
     out.write_string("  ".repeat(depth))
     match current.kind {
-      Text => out.write_string("#text \"\{current.data}\"")
-      Comment => out.write_string("#comment \"\{current.data}\"")
+      Text => out.write_string("#text \"\{escape_data(current.data)}\"")
+      Comment => out.write_string("#comment \"\{escape_data(current.data)}\"")
       _ => {
         out.write_string(node_name(current))
         if current.kind is Element && !current.attrs.is_empty() {

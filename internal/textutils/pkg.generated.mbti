@@ -1,0 +1,34 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hustcer/html2md/internal/textutils"
+
+// Values
+pub fn calculate_code_fence(Char, String) -> String
+
+pub fn calculate_code_fence_occurrences(Char, String) -> Int
+
+pub fn collapse_inline_code_content(String) -> String
+
+pub fn delimiter_for_every_line(String, String) -> String
+
+pub fn escape_multiline(String) -> String
+
+pub fn prefix_lines(String, String) -> String
+
+pub fn surround_by_quotes(String) -> String
+
+pub fn surrounding_spaces(String) -> (String, String, String)
+
+pub fn trim_consecutive_newlines(String) -> String
+
+pub fn trim_space(String) -> String
+
+pub fn trim_unnecessary_hard_line_breaks(String) -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+
