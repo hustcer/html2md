@@ -27,17 +27,52 @@ fn render_children(
 }
 
 ///|
-/// Static dispatch to the commonmark renderers (filled in P4). Returns false
-/// when no renderer handled the node, like `RenderTryNext`.
+/// Static dispatch to the commonmark renderers (port of
+/// `commonmark.handleRender`). Returns false when no renderer handled the
+/// node, like `RenderTryNext`.
 fn render_element(
   ctx : RenderCtx,
   out : StringBuilder,
   node : @dom.Node,
 ) -> Bool {
-  ignore(ctx)
-  ignore(out)
-  ignore(node)
-  false
+  match @domext.node_name(node) {
+    "strong" | "b" | "em" | "i" => {
+      render_bold_italic(ctx, out, node)
+      true
+    }
+    "hr" => {
+      render_divider(ctx, out, node)
+      true
+    }
+    "br" => {
+      render_break(ctx, out, node)
+      true
+    }
+    "ul" | "ol" => {
+      render_list_container(ctx, out, node)
+      true
+    }
+    "pre" => {
+      render_block_code(ctx, out, node)
+      true
+    }
+    "code" | "var" | "samp" | "kbd" | "tt" => {
+      render_inline_code(ctx, out, node)
+      true
+    }
+    "blockquote" => {
+      render_blockquote(ctx, out, node)
+      true
+    }
+    "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
+      render_heading(ctx, out, node)
+      true
+    }
+    "img" => render_image(ctx, out, node)
+    "a" => render_link(ctx, out, node)
+    "#comment" => render_comment(ctx, out, node)
+    _ => false
+  }
 }
 
 ///|
@@ -60,12 +95,18 @@ fn render_fallback(
 
 ///|
 /// Text pipeline (port of `base.handleTextTransform` +
-/// `commonmark.handleTextTransform`): entity-escape angle brackets, then
-/// insert escape markers (P5).
+/// `commonmark.handleTextTransform`): entity-escape angle brackets, insert
+/// escape markers, then (inside links) force-escape "]".
 fn render_text(ctx : RenderCtx, out : StringBuilder, node : @dom.Node) -> Unit {
-  ignore(ctx)
   let content = node.data
     .replace_all(old="<", new="&lt;")
     .replace_all(old=">", new="&gt;")
+  let content = escape(ctx, content)
+  let content = if ctx.is_inside_link {
+    // The "]" would prematurely close the link text.
+    content.replace_all(old=@escape.marker_escaping + "]", new="\\]")
+  } else {
+    content
+  }
   out.write_string(content)
 }

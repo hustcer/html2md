@@ -7,9 +7,15 @@ import {
 }
 
 // Values
+pub fn all_nodes(@dom.Node) -> Array[@dom.Node]
+
 pub fn attr_or(@dom.Node, String, String) -> String
 
+pub fn contains_node(@dom.Node, (@dom.Node) -> Bool) -> Bool
+
 pub fn dump(@dom.Node) -> String
+
+pub fn find_first_node(@dom.Node, (@dom.Node) -> Bool) -> @dom.Node?
 
 pub fn first_child(@dom.Node) -> @dom.Node?
 
@@ -37,21 +43,35 @@ pub fn is_void_name(String) -> Bool
 
 pub fn last_child(@dom.Node) -> @dom.Node?
 
+pub fn next_neighbor_element(@dom.Node) -> @dom.Node?
+
+pub fn next_neighbor_node(@dom.Node) -> @dom.Node?
+
+pub fn next_neighbor_node_excluding_own_child(@dom.Node) -> @dom.Node?
+
 pub fn next_sibling(@dom.Node) -> @dom.Node?
 
 pub fn node_name(@dom.Node) -> String
+
+pub fn prev_neighbor_node(@dom.Node) -> @dom.Node?
+
+pub fn prev_neighbor_node_excluding_own_child(@dom.Node) -> @dom.Node?
 
 pub fn prev_sibling(@dom.Node) -> @dom.Node?
 
 pub fn remove_node(@dom.Node) -> Unit
 
-pub fn rename(@dom.Node, String) -> @dom.Node
+pub fn rename(@dom.Node, String, attrs? : Map[String, String?]) -> @dom.Node
 
 pub fn replace_node(@dom.Node, @dom.Node) -> Unit
 
 pub fn set_text(@dom.Node, String) -> @dom.Node
 
 pub fn tag_type(String) -> TagType?
+
+pub fn unwrap_node(@dom.Node) -> Unit
+
+pub fn wrap_node(@dom.Node, @dom.Node) -> @dom.Node
 
 // Errors
 

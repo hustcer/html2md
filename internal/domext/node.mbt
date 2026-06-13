@@ -96,11 +96,19 @@ pub fn replace_node(old_node : @dom.Node, new_node : @dom.Node) -> Unit {
 }
 
 ///|
-/// "Rename" an element by replacing it with a new element of the same
-/// attributes and children (the dependency's `name` field is immutable).
-/// Returns the replacement node.
-pub fn rename(node : @dom.Node, new_name : String) -> @dom.Node {
-  let replacement = @dom.element(new_name, attrs=node.attrs)
+/// "Rename" an element by replacing it with a new element of the same (or
+/// given) attributes and the same children (the dependency's `name` field is
+/// immutable). Returns the replacement node.
+pub fn rename(
+  node : @dom.Node,
+  new_name : String,
+  attrs? : Map[String, String?],
+) -> @dom.Node {
+  let attrs = match attrs {
+    Some(map) => map
+    None => node.attrs
+  }
+  let replacement = @dom.element(new_name, attrs~)
   for child in node.children.copy() {
     replacement.append_child(child)
   }

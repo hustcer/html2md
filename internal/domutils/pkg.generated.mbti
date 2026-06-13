@@ -6,7 +6,27 @@ import {
 }
 
 // Values
+pub const LIST_END_COMMENT_DATA : String = "THE END"
+
+pub fn add_list_end_comments(@dom.Node) -> Unit
+
+pub fn add_space(@dom.Node, (@dom.Node) -> Bool, (@dom.Node) -> Bool) -> Unit
+
+pub fn leaf_block_alternatives(@dom.Node) -> Unit
+
+pub fn merge_adjacent(@dom.Node, (@dom.Node) -> Bool) -> Unit
+
 pub fn merge_adjacent_text_nodes(@dom.Node) -> Unit
+
+pub fn move_list_items(@dom.Node) -> Unit
+
+pub fn remove_empty_code(@dom.Node) -> Unit
+
+pub fn remove_redundant(@dom.Node, (@dom.Node, @dom.Node) -> Bool) -> Unit
+
+pub fn rename_fake_spans(@dom.Node) -> Unit
+
+pub fn swap_tags(@dom.Node, (@dom.Node) -> Bool, (@dom.Node) -> Bool) -> Unit
 
 // Errors
 

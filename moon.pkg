@@ -6,4 +6,6 @@ import {
   "hustcer/html2md/internal/domutils",
   "hustcer/html2md/internal/collapse",
   "hustcer/html2md/internal/textutils",
+  "hustcer/html2md/internal/escape",
+  "moonbitlang/core/strconv",
 }

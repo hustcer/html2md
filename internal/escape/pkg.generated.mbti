@@ -1,0 +1,25 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hustcer/html2md/internal/escape"
+
+// Values
+pub const MARKER_CODE_BLOCK_NEWLINE : Char = ''
+
+pub const MARKER_ESCAPING : Char = '\x07'
+
+pub fn escape_content(String, enabled? : Bool) -> String
+
+pub let marker_code_block_newline : String
+
+pub let marker_escaping : String
+
+pub fn unescape_content(String, Array[(Array[Char], Int) -> Int], enabled? : Bool) -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+pub type UnEscaper = (Array[Char], Int) -> Int
+
+// Traits
+
