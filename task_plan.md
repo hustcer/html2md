@@ -12,7 +12,7 @@
 | P3 引擎+基础行为 | render 骨架、fallback、remove、文本管线、post-render | complete |
 | P4 commonmark 渲染 | 全部 render_* + internal/domutils 变换 | complete |
 | P5 智能转义 | internal/escape：marker + 11 un-escaper | complete |
-| P6 收尾 | url.mbt、配置校验、README.mbt.md、moon info | in_progress |
+| P6 收尾 | url.mbt、配置校验、README.mbt.md、moon info | complete |
 
 ## Key Decisions
 - 解析器用 bobzhang/html_parser@0.1.7（仅 parser/dom/core 包），不自研

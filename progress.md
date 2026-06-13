@@ -12,3 +12,5 @@
 - P5 开始：智能转义 11 个 un-escaper
 - P5 完成并提交 1044136：11 个 un-escaper（char 空间）+ 注册 + 10 转义测试，63/63 绿；非对称转义经 metadata golden 坐实
 - P6 开始：url 测试、配置校验对齐、README.mbt.md、moon info 固化
+- P6 完成并提交 006c12c：配置校验对齐 Go、url_test、domutils 单测、README.mbt.md（文档即测试）、清零警告（含 warning 73），三后端各 83/83 绿
+- P0~P6 全部完成 ✅
