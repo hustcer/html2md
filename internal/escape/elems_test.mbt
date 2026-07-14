@@ -58,6 +58,18 @@ test "is_fenced_code" {
 }
 
 ///|
+test "escape elems: fenced code uses one marker character" {
+  debug_inspect(
+    all_results(is_fenced_code, "\{m}`\{m}~\{m}~a"),
+    content="[-1, -1, -1, -1, -1, -1, -1]",
+  )
+  debug_inspect(
+    all_results(is_fenced_code, "\{m}~\{m}`\{m}`a"),
+    content="[-1, -1, -1, -1, -1, -1, -1]",
+  )
+}
+
+///|
 test "is_inline_code" {
   debug_inspect(all_results(is_inline_code, "abc"), content="[-1, -1, -1]")
   debug_inspect(all_results(is_inline_code, "`a`"), content="[1, -1, 1]")

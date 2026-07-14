@@ -34,7 +34,7 @@ html.Parse → DOM 树
   - hr：`* * *`；br：`"  \n"`（硬换行）。
   - 列表结束注释：相邻两个列表之间插入 `<!--THE END-->` 注释，防止两个列表被解析为一个（可关）。
 - **Pre-Render DOM 变换**（commonmark + base）：
-  - RenameFakeSpans：`display:inline` 的 div 改名为 span。
+  - RenameFakeSpans：包含 block 子节点的 span 改名为 div。
   - RemoveRedundant（嵌套同类 bold/italic、嵌套 a 去内层）、MergeAdjacent（相邻同类 strong/em、code 合并）、MergeAdjacentTextNodes。
   - RemoveEmptyCode、SwapTags（code⊃pre 交换为 pre⊃code；strong⊃a 交换为 a⊃strong；a⊃h2 交换为 h2⊃a）。
   - AddSpace：`A<strong>B</strong>` 边界缺空格时补（针对 bold/italic/code）。

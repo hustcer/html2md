@@ -143,6 +143,20 @@ test "golden list: ordinal width padding" {
       #|10. b
     ),
   )
+  inspect(
+    @html2md.convert("<ol start=\"-1\"><li>a</li><li>b</li></ol>"),
+    content=(
+      #|-1. a
+      #|00. b
+    ),
+  )
+  inspect(
+    @html2md.convert("<ol start=\"-10\"><li>a</li><li>b</li></ol>"),
+    content=(
+      #|-10. a
+      #|-09. b
+    ),
+  )
 }
 
 ///|

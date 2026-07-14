@@ -6,6 +6,60 @@ fn escape(ctx : RenderCtx, content : String) -> String {
 }
 
 ///|
+/// Prefix used to encode literal occurrences of the two internal marker
+/// characters. A literal prefix is doubled, making the encoding reversible.
+const MARKER_LITERAL_PREFIX : Char = '\u{F000}'
+
+///|
+fn protect_internal_marker_literals(content : String) -> String {
+  let out = StringBuilder(size_hint=content.length())
+  for ch in content {
+    match ch {
+      MARKER_LITERAL_PREFIX => {
+        out.write_char(MARKER_LITERAL_PREFIX)
+        out.write_char(MARKER_LITERAL_PREFIX)
+      }
+      @escape.MARKER_ESCAPING => {
+        out.write_char(MARKER_LITERAL_PREFIX)
+        out.write_char('E')
+      }
+      @escape.MARKER_CODE_BLOCK_NEWLINE => {
+        out.write_char(MARKER_LITERAL_PREFIX)
+        out.write_char('N')
+      }
+      _ => out.write_char(ch)
+    }
+  }
+  out.to_string()
+}
+
+///|
+fn restore_internal_marker_literals(content : String) -> String {
+  let chars = content.to_array()
+  let out = StringBuilder(size_hint=content.length())
+  let mut i = 0
+  while i < chars.length() {
+    if chars[i] == MARKER_LITERAL_PREFIX && i + 1 < chars.length() {
+      match chars[i + 1] {
+        MARKER_LITERAL_PREFIX => out.write_char(MARKER_LITERAL_PREFIX)
+        'E' => out.write_char(@escape.MARKER_ESCAPING)
+        'N' => out.write_char(@escape.MARKER_CODE_BLOCK_NEWLINE)
+        _ => {
+          out.write_char(MARKER_LITERAL_PREFIX)
+          i += 1
+          continue
+        }
+      }
+      i += 2
+    } else {
+      out.write_char(chars[i])
+      i += 1
+    }
+  }
+  out.to_string()
+}
+
+///|
 /// Resolve escape markers using the commonmark un-escaper rule set, honoring
 /// the escape mode (wraps `@escape.unescape_content`).
 fn unescape(ctx : RenderCtx, content : String) -> String {

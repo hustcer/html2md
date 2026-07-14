@@ -3,10 +3,14 @@
 /// `renderLinkInlined`). Returns false to fall through to other renderers.
 fn render_link(ctx : RenderCtx, out : StringBuilder, node : @dom.Node) -> Bool {
   let link_ctx = { ..ctx, is_inside_link: true }
-  let href = @textutils.trim_space(@domext.attr_or(node, "href", ""))
-  let href = assemble_absolute_url("a", href, ctx.options.domain)
-  if href is "" && ctx.options.link_empty_href_behavior is Skip {
+  let raw_href = @textutils.trim_space(@domext.attr_or(node, "href", ""))
+  if raw_href is "" && ctx.options.link_empty_href_behavior is Skip {
     return false
+  }
+  let href = if raw_href is "" {
+    ""
+  } else {
+    assemble_absolute_url("a", raw_href, ctx.options.domain)
   }
   let title = @domext.attr_or(node, "title", "").replace_all(old="\n", new=" ")
   let buf = StringBuilder()
@@ -26,11 +30,13 @@ fn render_link(ctx : RenderCtx, out : StringBuilder, node : @dom.Node) -> Bool {
   out.write_char('[')
   out.write_string(trimmed)
   out.write_string("](")
-  out.write_string(href)
+  out.write_string(protect_internal_marker_literals(href))
   if title != "" {
     // The destination and title must be separated by a space
     out.write_char(' ')
-    out.write_string(@textutils.surround_by_quotes(title))
+    out.write_string(
+      @textutils.surround_by_quotes(protect_internal_marker_literals(title)),
+    )
   }
   out.write_char(')')
   out.write_string(after)

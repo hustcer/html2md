@@ -172,3 +172,17 @@ test "escape: setext underline in text" {
     ),
   )
 }
+
+///|
+test "escape: internal marker characters round-trip as user content" {
+  let content = "A\u{F000}B\u{0007}C\u{F002}D"
+  inspect(@html2md.convert("<p>" + content + "</p>"), content~)
+  inspect(
+    @html2md.convert("<pre><code>" + content + "</code></pre>"),
+    content="```\n" + content + "\n```",
+  )
+  inspect(
+    @html2md.convert("<a href=\"/A\u{F002}B\" title=\"T\u{0007}\">x</a>"),
+    content="[x](/A\u{F002}B \"T\u{0007}\")",
+  )
+}

@@ -139,5 +139,5 @@ fn run_pipeline(doc : @dom.Node, options : Options) -> String {
     old=@escape.marker_code_block_newline,
     new="\n",
   )
-  result
+  restore_internal_marker_literals(result)
 }

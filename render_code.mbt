@@ -3,12 +3,31 @@
 /// `class="lang-xxx"` attribute (port of `commonmark.getCodeLanguage`).
 fn get_code_language(node : @dom.Node) -> String {
   let class = @domext.attr_or(node, "class", "")
-  for part in class.split(" ") {
-    let part = part.to_owned()
-    if part.contains("language-") || part.contains("lang-") {
-      return part
-        .replace_all(old="language-", new="")
-        .replace_all(old="lang-", new="")
+  let token = StringBuilder()
+  let tokens : Array[String] = []
+  for ch in class {
+    if ch.is_whitespace() {
+      let part = token.to_string()
+      if part != "" {
+        tokens.push(part)
+        token.reset()
+      }
+    } else {
+      token.write_char(ch)
+    }
+  }
+  let part = token.to_string()
+  if part != "" {
+    tokens.push(part)
+  }
+  for part in tokens {
+    match part.strip_prefix("language-") {
+      Some(language) if language.length() > 0 => return language.to_owned()
+      _ => ()
+    }
+    match part.strip_prefix("lang-") {
+      Some(language) if language.length() > 0 => return language.to_owned()
+      _ => ()
     }
   }
   ""
@@ -36,7 +55,7 @@ fn get_code_without_tags(start : @dom.Node) -> (String, String) {
       buf.write_char('\n')
     }
     if node.kind is Text {
-      buf.write_string(node.data)
+      buf.write_string(protect_internal_marker_literals(node.data))
       return
     }
     for child in node.children {
@@ -92,6 +111,11 @@ fn render_block_code(
   }
   let fence_char = ctx.options.code_block_fence.get_char(0).unwrap()
   let fence = @textutils.calculate_code_fence(fence_char, code)
+  let info_string = if fence_char == '`' && info_string.contains("`") {
+    ""
+  } else {
+    protect_internal_marker_literals(info_string)
+  }
   // Keep the original content intact: newlines become a marker so the
   // post-render newline trimming leaves them alone.
   let code = code.replace_all(old="\n", new=@escape.marker_code_block_newline)

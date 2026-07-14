@@ -103,7 +103,7 @@ fn render_fallback(
 /// `commonmark.handleTextTransform`): entity-escape angle brackets, insert
 /// escape markers, then (inside links) force-escape "]".
 fn render_text(ctx : RenderCtx, out : StringBuilder, node : @dom.Node) -> Unit {
-  let content = node.data
+  let content = protect_internal_marker_literals(node.data)
     .replace_all(old="<", new="&lt;")
     .replace_all(old=">", new="&gt;")
   let content = escape(ctx, content)

@@ -310,6 +310,21 @@ test "gfm table: simple colspans and rowspans from Go golden" {
 }
 
 ///|
+test "gfm table: oversized spans stay bounded" {
+  let output = @html2md.convert(
+    "<table><tr><td colspan=\"1000000\" rowspan=\"1000000\">x</td></tr></table>",
+  )
+  inspect(output.length() < 10000, content="true")
+  let many_rows = "<tr><td>y</td></tr>".repeat(100)
+  let output = @html2md.convert(
+    "<table><tr><td colspan=\"1000\" rowspan=\"101\">x</td></tr>" +
+    many_rows +
+    "</table>",
+  )
+  inspect(output.length() < 10000, content="true")
+}
+
+///|
 test "gfm table: presentation table falls back to child content" {
   inspect(
     @html2md.convert(

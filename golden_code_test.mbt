@@ -492,6 +492,22 @@ test "golden code: language classes" {
       #|```
     ),
   )
+  inspect(
+    @html2md.convert("<pre><code class=\"clang-format\">x</code></pre>"),
+    content="```\nx\n```",
+  )
+  inspect(
+    @html2md.convert("<pre><code class=\"foo\tlanguage-go\">x</code></pre>"),
+    content="```go\nx\n```",
+  )
+  inspect(
+    @html2md.convert("<pre><code class=\"foo lang-rust\">x</code></pre>"),
+    content="```rust\nx\n```",
+  )
+  inspect(
+    @html2md.convert("<pre><code class=\"language-```evil\">x</code></pre>"),
+    content="```\nx\n```",
+  )
 }
 
 ///|

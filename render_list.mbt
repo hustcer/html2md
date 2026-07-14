@@ -7,6 +7,20 @@ fn get_start_at(node : @dom.Node) -> Int {
 }
 
 ///|
+/// Pad an ordered-list index to `width`, keeping a leading minus sign before
+/// any zero padding.
+fn pad_ordered_list_index(index : Int, width : Int) -> String {
+  let raw = index.to_string()
+  match raw.strip_prefix("-") {
+    Some(digits) => {
+      let zero_count = (width - 1 - digits.length()).max(0)
+      "-" + "0".repeat(zero_count) + digits.to_owned()
+    }
+    None => "0".repeat((width - raw.length()).max(0)) + raw
+  }
+}
+
+///|
 /// Build the prefix function for a list (port of `commonmark.getPrefixFunc`):
 /// bullet marker for `ul`, zero-padded "N. " for `ol`.
 fn make_prefix(
@@ -16,16 +30,18 @@ fn make_prefix(
 ) -> (Int) -> String {
   let start_at = get_start_at(node)
   let is_ul = @domext.node_name(node) is "ul"
+  let last_index = start_at + slice_length - 1
+  let max_length = start_at
+    .to_string()
+    .length()
+    .max(last_index.to_string().length())
   fn prefix(slice_index : Int) -> String {
     if is_ul {
       ctx.options.bullet_list_marker + " "
     } else {
       let current_index = start_at + slice_index
-      let last_index = start_at + slice_length - 1
-      let max_length = last_index.to_string().length()
-      let num = current_index.to_string()
       // Pad numbers so every prefix lines up, e.g. "01. ".
-      let padded = "0".repeat(max_length - num.length()) + num
+      let padded = pad_ordered_list_index(current_index, max_length)
       padded + ". "
     }
   }

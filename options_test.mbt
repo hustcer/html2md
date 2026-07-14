@@ -115,6 +115,22 @@ test "option: link empty href / content behavior" {
     @html2md.convert("<a href=\"/page\"></a>", link_empty_content_behavior=Skip),
     content="",
   )
+  inspect(
+    @html2md.convert(
+      "<a href=\"\">x</a>",
+      domain="https://example.com/base",
+      link_empty_href_behavior=Render,
+    ),
+    content="[x]()",
+  )
+  inspect(
+    @html2md.convert(
+      "<a href=\"\">x</a>",
+      domain="https://example.com/base",
+      link_empty_href_behavior=Skip,
+    ),
+    content="x",
+  )
 }
 
 ///|

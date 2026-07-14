@@ -27,13 +27,15 @@ fn render_image(ctx : RenderCtx, out : StringBuilder, node : @dom.Node) -> Bool 
   let alt = @domext.attr_or(node, "alt", "").replace_all(old="\n", new=" ")
   let alt = escape_alt(alt)
   out.write_string("![")
-  out.write_string(alt)
+  out.write_string(protect_internal_marker_literals(alt))
   out.write_string("](")
-  out.write_string(src)
+  out.write_string(protect_internal_marker_literals(src))
   if title != "" {
     // The destination and title must be separated by a space
     out.write_char(' ')
-    out.write_string(@textutils.surround_by_quotes(title))
+    out.write_string(
+      @textutils.surround_by_quotes(protect_internal_marker_literals(title)),
+    )
   }
   out.write_char(')')
   true

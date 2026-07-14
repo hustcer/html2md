@@ -17,6 +17,26 @@ priv struct PendingTableCell {
 }
 
 ///|
+priv struct TableSpanBudget {
+  mut remaining : Int
+}
+
+///|
+const MAX_TABLE_COL_SPAN : Int = 1000
+
+///|
+const MAX_TABLE_ROW_SPAN : Int = 65534
+
+///|
+/// Maximum number of placeholder cells introduced by spans in one table.
+const MAX_TABLE_SPAN_EXPANSION : Int = 1000
+
+///|
+/// Maximum size of the normalized rectangular Markdown table. Larger tables
+/// fall back to rendering their child content without table padding.
+const MAX_TABLE_RENDER_CELLS : Int = 100000
+
+///|
 fn render_table(ctx : RenderCtx, out : StringBuilder, node : @dom.Node) -> Bool {
   if ctx.is_inside_link {
     return false
@@ -34,6 +54,9 @@ fn render_table(ctx : RenderCtx, out : StringBuilder, node : @dom.Node) -> Bool 
   }
   let column_count = table_column_count(rows)
   if column_count == 0 {
+    return false
+  }
+  if column_count > MAX_TABLE_RENDER_CELLS / rows.length() {
     return false
   }
   out.write_string("\n\n")
@@ -94,8 +117,17 @@ fn build_table_rows(
   row_nodes : Array[@dom.Node],
 ) -> Unit {
   let pending : Array[PendingTableCell] = []
+  let span_budget : TableSpanBudget = { remaining: MAX_TABLE_SPAN_EXPANSION }
   for row_index, row_node in row_nodes {
-    match build_table_row(ctx, row_node, row_index, pending) {
+    match
+      build_table_row(
+        ctx,
+        row_node,
+        row_index,
+        row_nodes.length(),
+        pending,
+        span_budget,
+      ) {
       Some(row) => rows.push(row)
       None => ()
     }
@@ -107,7 +139,9 @@ fn build_table_row(
   ctx : RenderCtx,
   row_node : @dom.Node,
   row_index : Int,
+  row_count : Int,
   pending : Array[PendingTableCell],
+  span_budget : TableSpanBudget,
 ) -> TableRow? {
   let cells : Array[TableCell] = []
   let mut col_index = 0
@@ -120,8 +154,18 @@ fn build_table_row(
           content: render_table_cell(ctx, child),
           align: normalize_table_align(@domext.attr_or(child, "align", "")),
         }
-        let col_span = parse_table_span(@domext.attr_or(child, "colspan", ""))
-        let row_span = parse_table_span(@domext.attr_or(child, "rowspan", ""))
+        let requested_col_span = parse_table_span(
+          @domext.attr_or(child, "colspan", ""),
+        )
+        let remaining_rows = row_count - row_index
+        let max_row_span = MAX_TABLE_ROW_SPAN.min(remaining_rows)
+        let requested_row_span = parse_table_span(
+          @domext.attr_or(child, "rowspan", ""),
+          max_value=max_row_span,
+        )
+        let (col_span, row_span) = take_table_spans(
+          requested_col_span, requested_row_span, span_budget,
+        )
         cells.push(cell)
         for offset in 1..<col_span {
           cells.push(empty_table_cell(cell.align))
@@ -151,6 +195,19 @@ fn build_table_row(
   } else {
     Some({ cells, })
   }
+}
+
+///|
+fn take_table_spans(
+  requested_col_span : Int,
+  requested_row_span : Int,
+  budget : TableSpanBudget,
+) -> (Int, Int) {
+  let col_span = requested_col_span.min(budget.remaining + 1)
+  budget.remaining -= col_span - 1
+  let row_span = requested_row_span.min(1 + budget.remaining / col_span)
+  budget.remaining -= (row_span - 1) * col_span
+  (col_span, row_span)
 }
 
 ///|
@@ -204,13 +261,24 @@ fn normalize_table_align(value : String) -> String {
 }
 
 ///|
-fn parse_table_span(value : String) -> Int {
+fn parse_table_span(
+  value : String,
+  max_value? : Int = MAX_TABLE_COL_SPAN,
+) -> Int {
+  let max_value = max_value.max(1)
   let mut span = 0
   for ch in value {
     if ch < '0' || ch > '9' {
       return 1
     }
-    span = span * 10 + ch.to_int() - '0'.to_int()
+    let digit = ch.to_int() - '0'.to_int()
+    if span > (max_value - digit) / 10 {
+      return max_value
+    }
+    span = span * 10 + digit
+    if span >= max_value {
+      return max_value
+    }
   }
   if span < 1 {
     1

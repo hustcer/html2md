@@ -276,6 +276,7 @@ pub fn is_fenced_code(chars : Array[Char], index : Int) -> Int {
     }
     return -1
   }
+  let fence_char = chars[index]
   let mut count = 1
   let mut i = index + 1
   while i < chars.length() {
@@ -284,7 +285,7 @@ pub fn is_fenced_code(chars : Array[Char], index : Int) -> Int {
       i += 1
       continue
     }
-    if ch is ('`' | '~') {
+    if ch == fence_char {
       count += 1
       i += 1
       continue
