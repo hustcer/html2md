@@ -31,4 +31,3 @@ pub fn trim_unnecessary_hard_line_breaks(String) -> String
 // Type aliases
 
 // Traits
-

@@ -117,7 +117,7 @@ fn build_table_rows(
   row_nodes : Array[@dom.Node],
 ) -> Unit {
   let pending : Array[PendingTableCell] = []
-  let span_budget : TableSpanBudget = { remaining: MAX_TABLE_SPAN_EXPANSION }
+  let span_budget : TableSpanBudget = { remaining: MAX_TABLE_SPAN_EXPANSION, }
   for row_index, row_node in row_nodes {
     match
       build_table_row(
@@ -247,7 +247,7 @@ fn pop_pending_table_cell(
 
 ///|
 fn empty_table_cell(align : String) -> TableCell {
-  { content: "", align }
+  { content: "", align, }
 }
 
 ///|

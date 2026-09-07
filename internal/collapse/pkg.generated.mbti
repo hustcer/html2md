@@ -15,4 +15,3 @@ pub fn collapse(@dom.Node) -> Unit
 // Type aliases
 
 // Traits
-

@@ -46,4 +46,3 @@ pub fn unescape_content(String, Array[(Array[Char], Int) -> Int], enabled? : Boo
 pub type UnEscaper = (Array[Char], Int) -> Int
 
 // Traits
-

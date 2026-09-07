@@ -35,4 +35,3 @@ pub fn swap_tags(@dom.Node, (@dom.Node) -> Bool, (@dom.Node) -> Bool) -> Unit
 // Type aliases
 
 // Traits
-
