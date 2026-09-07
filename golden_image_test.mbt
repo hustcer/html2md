@@ -1,6 +1,54 @@
 // End-to-end cases ported from testdata/GoldenFiles/image.{in.html,out.md}.
 
 ///|
+test "image alt preserves literal backslashes and brackets" {
+  inspect(
+    @html2md.convert(
+      (
+        #|<img src="/url" alt="directory\">
+      ),
+    ),
+    content=(
+      #|![directory\\](/url)
+    ),
+  )
+  inspect(
+    @html2md.convert(
+      (
+        #|<img src="/url" alt="a\[b] c\\]">
+      ),
+    ),
+    content=(
+      #|![a\\\[b\] c\\\\\]](/url)
+    ),
+  )
+}
+
+///|
+test "image alt keeps literal inline formatting characters" {
+  inspect(
+    @html2md.convert(
+      (
+        #|<img src="/url" alt="*bold* _word_ `tick` ~~strike~~">
+      ),
+    ),
+    content=(
+      #|![\*bold\* \_word\_ \`tick\` \~\~strike\~\~](/url)
+    ),
+  )
+}
+
+///|
+test "image alt preserves literal tags and entity spellings" {
+  inspect(
+    @html2md.convert(
+      "<img src=\"/url\" alt=\"&lt;b&gt;x&lt;/b&gt; &amp;copy; &amp;#65; &amp; 中文😀\">",
+    ),
+    content="![&lt;b&gt;x&lt;/b&gt; &amp;copy; &amp;#65; &amp; 中文😀](/url)",
+  )
+}
+
+///|
 test "image titles preserve literal backslashes inside lists" {
   inspect(
     @html2md.convert(
