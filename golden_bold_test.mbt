@@ -1,6 +1,36 @@
 // End-to-end cases ported from testdata/GoldenFiles/bold.{in.html,out.md}.
 
 ///|
+test "adjacent bold and italic retain distinct formatting" {
+  inspect(
+    @html2md.convert("<p><strong>bold</strong><em>italic</em></p>"),
+    content="**bold***italic*",
+  )
+  inspect(
+    @html2md.convert("<p><i>italic</i><b>bold</b></p>"),
+    content="*italic***bold**",
+  )
+}
+
+///|
+test "adjacent emphasis aliases merge only within their own style" {
+  inspect(
+    @html2md.convert(
+      "<p><b>a</b><strong>b</strong><i>c</i><em>d</em></p>",
+      em_delimiter="_",
+    ),
+    content="**ab**_cd_",
+  )
+  inspect(
+    @html2md.convert(
+      "<p><em>a</em><span><strong>b</strong></span><i>c</i></p>",
+      em_delimiter="_",
+    ),
+    content="_a_**b**_c_",
+  )
+}
+
+///|
 test "golden bold: basics" {
   inspect(
     @html2md.convert("<p>some <b>bold</b> and <strong>bold</strong> text</p>"),

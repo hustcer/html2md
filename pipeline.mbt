@@ -84,7 +84,8 @@ fn pre_render_commonmark(doc : @dom.Node) -> Unit {
 
   // Bold / Italic
   @domutils.remove_redundant(doc, name_is_both_bold_or_italic)
-  @domutils.merge_adjacent(doc, name_is_bold_or_italic)
+  @domutils.merge_adjacent(doc, name_is_bold)
+  @domutils.merge_adjacent(doc, name_is_italic)
 
   // Strikethrough
   @domutils.remove_redundant(doc, name_is_both_strikethrough)
