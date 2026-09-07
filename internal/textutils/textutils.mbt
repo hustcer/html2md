@@ -218,6 +218,9 @@ pub fn surround_by_quotes(content : String) -> String {
   if content is "" {
     return ""
   }
+  // HTML attributes contain literal backslashes, not Markdown escapes.
+  // Escape them first so they cannot consume a quote or escape we add below.
+  let content = content.replace_all(old="\\", new="\\\\")
   let has_double = content.contains("\"")
   let has_single = content.contains("'")
   if has_double && has_single {

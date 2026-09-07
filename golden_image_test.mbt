@@ -1,6 +1,20 @@
 // End-to-end cases ported from testdata/GoldenFiles/image.{in.html,out.md}.
 
 ///|
+test "image titles preserve literal backslashes inside lists" {
+  inspect(
+    @html2md.convert(
+      (
+        #|<ul><li><img src="/image" title="directory\"></li></ul>
+      ),
+    ),
+    content=(
+      #|- ![](/image "directory\\")
+    ),
+  )
+}
+
+///|
 test "golden image: no src is skipped" {
   inspect(@html2md.convert("<p><img /></p>"), content="")
   inspect(@html2md.convert("<p><img src=\"\" /></p>"), content="")
