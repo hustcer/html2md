@@ -300,9 +300,9 @@ fn merge_relative_path(base_path : String, raw_path : String) -> String {
 /// Remove "." and ".." path segments after RFC 3986 section 5.2.4.
 fn remove_dot_segments(path : String) -> String {
   let leading_slash = path.has_prefix("/")
-  let trailing_slash = path.has_suffix("/") ||
-    path.has_suffix("/.") ||
-    path.has_suffix("/..")
+  // Splitting already preserves a literal trailing slash as an empty segment.
+  // Only a removed final dot segment needs an extra slash during reassembly.
+  let trailing_slash = path.has_suffix("/.") || path.has_suffix("/..")
   let segments : Array[String] = []
   let mut first = true
   for part_view in path.split("/") {
