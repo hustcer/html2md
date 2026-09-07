@@ -21,12 +21,12 @@ test "sibling cursors" {
   let c = @dom.text("c")
   let parent = @dom.element("p", children=[a, b, c])
   inspect(@domext.index_in_parent(b), content="1")
-  guard @domext.next_sibling(a) is Some(n1) && physical_equal(n1, b)
-  guard @domext.next_sibling(c) is None
-  guard @domext.prev_sibling(b) is Some(p1) && physical_equal(p1, a)
-  guard @domext.prev_sibling(a) is None
-  guard @domext.first_child(parent) is Some(f) && physical_equal(f, a)
-  guard @domext.last_child(parent) is Some(l) && physical_equal(l, c)
+  assert_true(@domext.next_sibling(a) is Some(n1) && physical_equal(n1, b))
+  assert_true(@domext.next_sibling(c) is None)
+  assert_true(@domext.prev_sibling(b) is Some(p1) && physical_equal(p1, a))
+  assert_true(@domext.prev_sibling(a) is None)
+  assert_true(@domext.first_child(parent) is Some(f) && physical_equal(f, a))
+  assert_true(@domext.last_child(parent) is Some(l) && physical_equal(l, c))
   inspect(@domext.index_in_parent(parent), content="-1")
 }
 
@@ -37,7 +37,7 @@ test "remove / insert_after / replace" {
   let parent = @dom.element("p", children=[a, b])
   @domext.remove_node(a)
   inspect(parent.children.length(), content="1")
-  guard a.parent is None
+  assert_true(a.parent is None)
   let x = @dom.text("x")
   @domext.insert_after(b, x)
   inspect(
@@ -51,8 +51,8 @@ test "remove / insert_after / replace" {
   )
   let y = @dom.element("em")
   @domext.replace_node(b, y)
-  guard physical_equal(parent.children[0], y)
-  guard b.parent is None
+  assert_true(physical_equal(parent.children[0], y))
+  assert_true(b.parent is None)
 }
 
 ///|
@@ -70,7 +70,7 @@ test "rename keeps attrs and children" {
       #|
     ),
   )
-  guard physical_equal(span.children[0], child)
+  assert_true(physical_equal(span.children[0], child))
 }
 
 ///|
