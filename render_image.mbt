@@ -1,15 +1,19 @@
 ///|
-/// The alt description sits between square brackets, so escape those (port
-/// of `commonmark.escapeAlt`).
+/// HTML alt text is literal text. Escape inline Markdown syntax and entities
+/// so the rendered image description retains its original characters.
 fn escape_alt(alt : String) -> String {
   let out = StringBuilder(size_hint=alt.length())
-  let mut prev : Char = ' '
-  for i, ch in alt {
-    if (ch == '[' || ch == ']') && (i == 0 || prev != '\\') {
-      out.write_char('\\')
+  for ch in alt {
+    match ch {
+      '\\' | '[' | ']' | '*' | '_' | '`' | '~' => {
+        out.write_char('\\')
+        out.write_char(ch)
+      }
+      '<' => out.write_string("&lt;")
+      '>' => out.write_string("&gt;")
+      '&' => out.write_string("&amp;")
+      _ => out.write_char(ch)
     }
-    out.write_char(ch)
-    prev = ch
   }
   out.to_string()
 }
