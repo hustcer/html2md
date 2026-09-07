@@ -8,7 +8,9 @@
 fn parse_body(html : String) -> @dom.Node raise {
   let doc = @parser.parse(html, sanitize=false)
   guard @domext.find_first_node(doc.root, n => @domext.node_name(n) is "body")
-    is Some(body)
+    is Some(body) else {
+    fail("expected the parsed document to contain a body element")
+  }
   body
 }
 

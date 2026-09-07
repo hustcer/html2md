@@ -32,7 +32,7 @@ pub fn convert(
   list_end_comment? : Bool = true,
 ) -> String raise ConvertError {
   let doc = @parser.parse(html, sanitize=false) catch {
-    err => raise ParseFailed("\{to_repr(err)}")
+    err => raise ParseFailed("\{Repr(err)}")
   }
   convert_dom(
     doc.root,
