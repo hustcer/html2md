@@ -6,6 +6,54 @@
 // document, so the trailing space is trimmed — the standalone-correct result.
 
 ///|
+test "link titles preserve literal backslashes" {
+  inspect(
+    @html2md.convert(
+      (
+        #|<a href="/url" title="directory\">x</a>
+      ),
+    ),
+    content=(
+      #|[x](/url "directory\\")
+    ),
+  )
+  inspect(
+    @html2md.convert(
+      (
+        #|<a href="/url" title="a\*b\\c">x</a>
+      ),
+    ),
+    content=(
+      #|[x](/url "a\\*b\\\\c")
+    ),
+  )
+}
+
+///|
+test "link titles escape backslashes before either quote delimiter" {
+  inspect(
+    @html2md.convert(
+      (
+        #|<a href="/url" title="&quot;quoted&quot;\">x</a>
+      ),
+    ),
+    content=(
+      #|[x](/url '"quoted"\\')
+    ),
+  )
+  inspect(
+    @html2md.convert(
+      (
+        #|<a href="/url" title="a\&quot;b'c">x</a>
+      ),
+    ),
+    content=(
+      #|[x](/url "a\\\"b'c")
+    ),
+  )
+}
+
+///|
 test "golden link: no href" {
   inspect(
     @html2md.convert("<p><a>no href</a></p>"),
