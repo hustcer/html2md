@@ -185,6 +185,46 @@ test "url: relative path dot segments are normalized" {
 }
 
 ///|
+test "url: resolving directory paths preserves trailing slashes" {
+  let domain = "https://example.com/docs/page.html"
+  for path in ["assets/", "./assets/", "../assets/", "/assets/"] {
+    let expected = if path.has_prefix("assets") || path.has_prefix("./") {
+      "[x](https://example.com/docs/assets/)"
+    } else {
+      "[x](https://example.com/assets/)"
+    }
+    assert_eq(link(path, domain~), expected)
+  }
+}
+
+///|
+test "url: resolving paths preserves empty segments" {
+  let domain = "https://example.com/docs/page.html"
+  assert_eq(link("a//", domain~), "[x](https://example.com/docs/a//)")
+  assert_eq(link("/a//b/", domain~), "[x](https://example.com/a//b/)")
+  assert_eq(link("/a//.", domain~), "[x](https://example.com/a//)")
+  assert_eq(link("/a///..", domain~), "[x](https://example.com/a//)")
+  assert_eq(link("/a/../", domain~), "[x](https://example.com/)")
+  assert_eq(link("/a//../", domain~), "[x](https://example.com/a/)")
+  assert_eq(link("/a///../", domain~), "[x](https://example.com/a//)")
+}
+
+///|
+test "url: directory paths keep query and fragment suffixes" {
+  assert_eq(
+    link("assets/?q=a b#section", domain="https://example.com/docs/page.html"),
+    "[x](https://example.com/docs/assets/?q=a%20b#section)",
+  )
+  assert_eq(
+    @html2md.convert(
+      "<img src=\"assets/\" alt=\"x\">",
+      domain="https://example.com/docs/page.html",
+    ),
+    "![x](https://example.com/docs/assets/)",
+  )
+}
+
+///|
 test "url: mailto query fields are percent-encoded" {
   inspect(
     link("mailto:hi@example.com?subject=Hello World&body=Line 1\nLine 2"),
