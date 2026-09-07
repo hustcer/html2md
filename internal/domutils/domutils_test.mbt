@@ -57,6 +57,57 @@ test "merge_adjacent_text_nodes: three text nodes" {
 // - - - - - - - - - - merge_adjacent - - - - - - - - - - //
 
 ///|
+test "merge text: preserve boundaries, identities and parent links" {
+  let first = @dom.text("α")
+  let second = @dom.text("😀")
+  let comment = @dom.comment("separator")
+  let lone = @dom.text("single")
+  let nested = @dom.element("span", children=[@dom.text("a"), @dom.text("b")])
+  let last = @dom.text("")
+  let parent = @dom.element("p", children=[
+    first,
+    second,
+    comment,
+    lone,
+    nested,
+    @dom.text("tail"),
+    last,
+  ])
+  let children = parent.children
+  @domutils.merge_adjacent_text_nodes(parent)
+  assert_true(physical_equal(children, parent.children))
+  assert_eq(children.length(), 5)
+  assert_eq(children[0].data, "α😀")
+  assert_eq(children[4].data, "tail")
+  assert_true(
+    first.parent is None && second.parent is None && last.parent is None,
+  )
+  assert_true(physical_equal(children[1], comment))
+  assert_true(physical_equal(children[2], lone))
+  assert_true(physical_equal(children[3], nested))
+  assert_eq(nested.children.length(), 1)
+  assert_eq(nested.children[0].data, "ab")
+  for node in children {
+    assert_true(node.parent is Some(p) && physical_equal(p, parent))
+  }
+  assert_true(nested.children[0].parent is Some(p) && physical_equal(p, nested))
+  let merged = children[0]
+  @domutils.merge_adjacent_text_nodes(parent)
+  assert_true(physical_equal(children[0], merged))
+}
+
+///|
+test "merge text: empty runs and empty containers" {
+  let empty = @dom.element("p")
+  @domutils.merge_adjacent_text_nodes(empty)
+  assert_true(empty.children.is_empty())
+  let parent = @dom.element("p", children=[@dom.text(""), @dom.text("")])
+  @domutils.merge_adjacent_text_nodes(parent)
+  assert_eq(parent.children.length(), 1)
+  assert_eq(parent.children[0].data, "")
+}
+
+///|
 test "merge_adjacent: don't change other tags" {
   inspect(
     dump_merge_adjacent("<span>a</span> <span>b</span>", name_is_strong_or_em),

@@ -8,4 +8,5 @@ import {
   "bobzhang/html_parser/parser",
   "bobzhang/html_parser/dom",
   "hustcer/html2md/internal/domext",
+  "moonbitlang/core/bench",
 } for "test"
