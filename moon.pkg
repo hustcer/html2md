@@ -14,3 +14,7 @@ import {
 import {
   "bobzhang/html_parser/parser",
 } for "test"
+
+import {
+  "moonbitlang/core/bench",
+} for "wbtest"
