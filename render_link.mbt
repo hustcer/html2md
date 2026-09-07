@@ -2,7 +2,7 @@
 /// Render `<a>` as an inlined link (port of `commonmark.renderLink` +
 /// `renderLinkInlined`). Returns false to fall through to other renderers.
 fn render_link(ctx : RenderCtx, out : StringBuilder, node : @dom.Node) -> Bool {
-  let link_ctx = { ..ctx, is_inside_link: true }
+  let link_ctx = { ..ctx, is_inside_link: true, }
   let raw_href = @textutils.trim_space(@domext.attr_or(node, "href", ""))
   if raw_href is "" && ctx.options.link_empty_href_behavior is Skip {
     return false

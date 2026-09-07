@@ -36,4 +36,3 @@ pub(all) enum LinkBehavior {
 // Type aliases
 
 // Traits
-

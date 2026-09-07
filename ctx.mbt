@@ -8,5 +8,5 @@ priv struct RenderCtx {
 
 ///|
 fn RenderCtx::of(options : Options) -> RenderCtx {
-  { options, is_inside_link: false }
+  { options, is_inside_link: false, }
 }
