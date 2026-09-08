@@ -210,6 +210,25 @@ test "url: resolving paths preserves empty segments" {
 }
 
 ///|
+test "url: final dot segments preserve empty segments at the root" {
+  let domain = "https://example.com"
+  for path in ["a/..//.", "/a/..//.", ".//.", "/.//.", "/a/..///.."] {
+    assert_eq(link(path, domain~), "[x](https://example.com//)")
+  }
+  for path in ["a/..", "/a/..", "/.", "/..", "../../."] {
+    assert_eq(link(path, domain~), "[x](https://example.com/)")
+  }
+  assert_eq(
+    link("/a/..//.?q=a b#part", domain~),
+    "[x](https://example.com//?q=a%20b#part)",
+  )
+  assert_eq(
+    @html2md.convert("<img src=\"a/..//.\">", domain~),
+    "![](https://example.com//)",
+  )
+}
+
+///|
 test "url: directory paths keep query and fragment suffixes" {
   assert_eq(
     link("assets/?q=a b#section", domain="https://example.com/docs/page.html"),

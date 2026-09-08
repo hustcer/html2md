@@ -1,14 +1,116 @@
 // End-to-end cases ported from testdata/GoldenFiles/bold.{in.html,out.md}.
 
 ///|
+test "adjacent emphasis separates punctuation boundaries" {
+  inspect(
+    @html2md.convert("<p><strong>a!</strong><em>b</em></p>"),
+    content="**a!**<!-- -->*b*",
+  )
+  inspect(
+    @html2md.convert("<p><strong>a</strong><em>!b</em></p>"),
+    content="**a**<!-- -->*!b*",
+  )
+  inspect(
+    @html2md.convert("<p><em>a</em><strong>!</strong></p>"),
+    content="*a*<!-- -->**!**",
+  )
+}
+
+///|
+test "adjacent emphasis retains nested formatting" {
+  inspect(
+    @html2md.convert("<p><strong>a<em>b</em></strong><em>c</em></p>"),
+    content="**a*b***<!-- -->*c*",
+  )
+  inspect(
+    @html2md.convert("<p><em>a<strong>b</strong></em><strong>c</strong></p>"),
+    content="*a**b***<!-- -->**c**",
+  )
+}
+
+///|
+test "emphasis boundaries follow spans and ignore empty output" {
+  inspect(
+    @html2md.convert(
+      "<p><strong>a!</strong><span></span><span><em>b</em></span></p>",
+    ),
+    content="**a!**<!-- -->*b*",
+  )
+  inspect(
+    @html2md.convert("<p><strong>甲，</strong><em>乙</em></p>"),
+    content="**甲，**<!-- -->*乙*",
+  )
+}
+
+///|
+test "emphasis boundaries preserve configured underscore delimiters" {
+  inspect(
+    @html2md.convert(
+      "<p><strong>a!</strong><em>b</em></p>",
+      strong_delimiter="__",
+      em_delimiter="_",
+    ),
+    content="__a!__<!-- -->_b_",
+  )
+  inspect(
+    @html2md.convert(
+      "<p><strong>a<em>b</em></strong><em>c</em></p>",
+      em_delimiter="_",
+    ),
+    content="**a<!-- -->_b_**<!-- -->_c_",
+  )
+}
+
+///|
+test "adjacent emphasis supports every delimiter combination" {
+  for strong in ["**", "__"] {
+    for em in ["*", "_"] {
+      assert_eq(
+        @html2md.convert(
+          "<p><b>a!</b><i>b</i><strong>c?</strong></p>",
+          strong_delimiter=strong,
+          em_delimiter=em,
+        ),
+        strong +
+        "a!" +
+        strong +
+        "<!-- -->" +
+        em +
+        "b" +
+        em +
+        "<!-- -->" +
+        strong +
+        "c?" +
+        strong,
+      )
+    }
+  }
+}
+
+///|
+test "literal disabled Markdown is not a generated emphasis edge" {
+  inspect(
+    @html2md.convert(
+      "<p>**literal**<span>*more*</span></p>",
+      escape_mode=Disabled,
+    ),
+    content="**literal***more*",
+  )
+}
+
+///|
 test "adjacent bold and italic retain distinct formatting" {
   inspect(
     @html2md.convert("<p><strong>bold</strong><em>italic</em></p>"),
-    content="**bold***italic*",
+    content=(
+      #|**bold**<!-- -->*italic*
+    ),
   )
   inspect(
     @html2md.convert("<p><i>italic</i><b>bold</b></p>"),
-    content="*italic***bold**",
+    content=(
+      #|*italic*<!-- -->**bold**
+    ),
   )
 }
 
@@ -19,14 +121,18 @@ test "adjacent emphasis aliases merge only within their own style" {
       "<p><b>a</b><strong>b</strong><i>c</i><em>d</em></p>",
       em_delimiter="_",
     ),
-    content="**ab**_cd_",
+    content=(
+      #|**ab**<!-- -->_cd_
+    ),
   )
   inspect(
     @html2md.convert(
       "<p><em>a</em><span><strong>b</strong></span><i>c</i></p>",
       em_delimiter="_",
     ),
-    content="_a_**b**_c_",
+    content=(
+      #|_a_<!-- -->**b**<!-- -->_c_
+    ),
   )
 }
 
@@ -121,7 +227,7 @@ test "commonmark italic plugin cases from Go" {
   )
   inspect(
     @html2md.convert("before<i>\u{200b}</i>after"),
-    content="before*\u{200b}*after",
+    content="before<!-- -->*\u{200b}*<!-- -->after",
   )
 }
 
@@ -244,19 +350,19 @@ test "golden bold: punctuation around emphasis" {
   inspect(
     @html2md.convert("<p>before<em>.middle</em>after</p>"),
     content=(
-      #|before*.middle*after
+      #|before<!-- -->*.middle*after
     ),
   )
   inspect(
     @html2md.convert("<p>before<em>middle.</em>after</p>"),
     content=(
-      #|before*middle.*after
+      #|before*middle.*<!-- -->after
     ),
   )
   inspect(
     @html2md.convert("<p>before<em>.middle.</em>after</p>"),
     content=(
-      #|before*.middle.*after
+      #|before<!-- -->*.middle.*<!-- -->after
     ),
   )
   inspect(
@@ -280,7 +386,7 @@ test "golden bold: punctuation around emphasis" {
   inspect(
     @html2md.convert("<p>before<em>?!!middle?!!</em>after</p>"),
     content=(
-      #|before*?!!middle?!!*after
+      #|before<!-- -->*?!!middle?!!*<!-- -->after
     ),
   )
   inspect(
@@ -292,7 +398,7 @@ test "golden bold: punctuation around emphasis" {
   inspect(
     @html2md.convert("<p>before<em>-middle-</em>after</p>"),
     content=(
-      #|before*-middle-*after
+      #|before<!-- -->*-middle-*<!-- -->after
     ),
   )
 }
@@ -302,31 +408,31 @@ test "golden bold: emphasis with only punctuation" {
   inspect(
     @html2md.convert("<p>check it out<em>.</em></p>"),
     content=(
-      #|check it out*.*
+      #|check it out<!-- -->*.*
     ),
   )
   inspect(
     @html2md.convert("<p>check it out<em>?</em></p>"),
     content=(
-      #|check it out*?*
+      #|check it out<!-- -->*?*
     ),
   )
   inspect(
     @html2md.convert("<p>check it out<em>!!!</em></p>"),
     content=(
-      #|check it out*!!!*
+      #|check it out<!-- -->*!!!*
     ),
   )
   inspect(
     @html2md.convert("<p><em>!</em>just after</p>"),
     content=(
-      #|*!*just after
+      #|*!*<!-- -->just after
     ),
   )
   inspect(
     @html2md.convert("<p>just before<em>!</em></p>"),
     content=(
-      #|just before*!*
+      #|just before<!-- -->*!*
     ),
   )
 }

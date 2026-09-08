@@ -320,7 +320,9 @@ fn remove_dot_segments(path : String) -> String {
   }
   let joined = segments.join("/")
   let normalized = if leading_slash { "/" + joined } else { joined }
-  if trailing_slash && normalized != "/" {
+  // A remaining empty segment is distinct from no remaining segments:
+  // `/a/..//.` must keep `//`, while `/a/..` must end at `/`.
+  if trailing_slash && (!leading_slash || !segments.is_empty()) {
     normalized + "/"
   } else {
     normalized

@@ -2,13 +2,20 @@
 /// Render a node into `out` (port of `Converter.handleRenderNode`):
 /// text nodes go through the text pipeline, elements through the static
 /// renderer dispatch, everything unhandled through the fallback.
-fn render_node(ctx : RenderCtx, out : StringBuilder, node : @dom.Node) -> Unit {
+fn render_node(
+  ctx : RenderCtx,
+  out : StringBuilder,
+  node : @dom.Node,
+) -> EmphasisEdges {
   if node.kind is Text {
     render_text(ctx, out, node)
-    return
+    return EmphasisEdges::none()
+  }
+  if name_is_bold_or_italic(node) {
+    return render_bold_italic(ctx, out, node)
   }
   if render_element(ctx, out, node) {
-    return
+    return EmphasisEdges::none()
   }
   render_fallback(ctx, out, node)
 }
@@ -20,10 +27,36 @@ fn render_children(
   ctx : RenderCtx,
   out : StringBuilder,
   node : @dom.Node,
-) -> Unit {
-  for child in node.children.copy() {
-    render_node(ctx, out, child)
+) -> EmphasisEdges {
+  let children = node.children.copy()
+  if children.length() == 1 {
+    return render_node(ctx, out, children[0])
   }
+  let buf = StringBuilder()
+  let mut previous = ""
+  let mut edges = EmphasisEdges::none()
+  for child in children {
+    buf.reset()
+    let child_edges = render_node(ctx, buf, child)
+    let content = buf.to_string()
+    if content.is_empty() {
+      continue
+    }
+    if emphasis_needs_separator(previous, edges.end, content, child_edges.start) {
+      out.write_string("<!-- -->")
+    }
+    out.write_string(content)
+    edges = {
+      start: if previous.is_empty() {
+        child_edges.start
+      } else {
+        edges.start
+      },
+      end: child_edges.end,
+    }
+    previous = content
+  }
+  edges
 }
 
 ///|
@@ -36,10 +69,6 @@ fn render_element(
   node : @dom.Node,
 ) -> Bool {
   match @domext.node_name(node) {
-    "strong" | "b" | "em" | "i" => {
-      render_bold_italic(ctx, out, node)
-      true
-    }
     "s" | "del" | "strike" => {
       render_strikethrough(ctx, out, node)
       true
@@ -87,14 +116,17 @@ fn render_fallback(
   ctx : RenderCtx,
   out : StringBuilder,
   node : @dom.Node,
-) -> Unit {
+) -> EmphasisEdges {
   let is_block = @domext.is_block_tag_type(@domext.node_name(node))
   if is_block {
     out.write_string("\n\n")
   }
-  render_children(ctx, out, node)
+  let edges = render_children(ctx, out, node)
   if is_block {
     out.write_string("\n\n")
+    EmphasisEdges::none()
+  } else {
+    edges
   }
 }
 

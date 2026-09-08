@@ -290,7 +290,7 @@ fn parse_table_span(
 ///|
 fn render_table_cell(ctx : RenderCtx, node : @dom.Node) -> String {
   let buf = StringBuilder()
-  render_children(ctx, buf, node)
+  ignore(render_children(ctx, buf, node))
   let content = @textutils.trim_space(buf.to_string())
   let content = @textutils.trim_consecutive_newlines(content)
   let content = @textutils.trim_unnecessary_hard_line_breaks(content)

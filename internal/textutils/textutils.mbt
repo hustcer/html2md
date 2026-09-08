@@ -220,7 +220,11 @@ pub fn surround_by_quotes(content : String) -> String {
   }
   // HTML attributes contain literal backslashes, not Markdown escapes.
   // Escape them first so they cannot consume a quote or escape we add below.
-  let content = content.replace_all(old="\\", new="\\\\")
+  // CommonMark also decodes entities inside titles. Protect literal entity
+  // spellings after HTML parsing has already decoded the attribute once.
+  let content = content
+    .replace_all(old="\\", new="\\\\")
+    .replace_all(old="&", new="&amp;")
   let has_double = content.contains("\"")
   let has_single = content.contains("'")
   if has_double && has_single {

@@ -90,7 +90,7 @@ fn render_heading(
 ) -> Unit {
   let level = get_heading_level(@domext.node_name(node))
   let buf = StringBuilder()
-  render_children(ctx, buf, node)
+  ignore(render_children(ctx, buf, node))
   let content = buf.to_string()
   if @textutils.trim_space(content) is "" {
     return

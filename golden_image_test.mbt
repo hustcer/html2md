@@ -1,6 +1,55 @@
 // End-to-end cases ported from testdata/GoldenFiles/image.{in.html,out.md}.
 
 ///|
+test "image titles preserve literal entity references" {
+  inspect(
+    @html2md.convert(
+      (
+        #|<img src="/url" title="&amp;copy; &amp;#65; \&amp;quot;">
+      ),
+    ),
+    content=(
+      #|![](/url "&amp;copy; &amp;#65; \\&amp;quot;")
+    ),
+  )
+}
+
+///|
+test "image attributes normalize CR LF and CRLF from character references" {
+  inspect(
+    @html2md.convert(
+      (
+        #|<img src="/url" alt="a&#13;b&#10;c&#13;&#10;d&#13;&#13;e" title="a&#13;b&#10;c&#13;&#10;d&#13;&#13;e">
+      ),
+    ),
+    content="![a b c d  e](/url \"a b c d  e\")",
+  )
+  inspect(
+    @html2md.convert(
+      (
+        #|<ul><li><a href="/page" title="&amp;copy;&#13;x"><img src="/url" alt="a&#13;&#13;b" title="&amp;#65;&#13;y"></a></li></ul>
+      ),
+    ),
+    content="- [![a  b](/url \"&amp;#65; y\")](/page \"&amp;copy; x\")",
+  )
+}
+
+///|
+test "image attributes remain inline in GFM tables" {
+  inspect(
+    @html2md.convert(
+      (
+        #|<table><tr><td><img src="/url" alt="a&#13;&#13;b" title="&amp;copy;&#13;&#10;x"></td></tr></table>
+      ),
+    ),
+    content=(
+      #|| ![a b](/url "&amp;copy; x") |
+      #|| --- |
+    ),
+  )
+}
+
+///|
 test "image alt preserves literal backslashes and brackets" {
   inspect(
     @html2md.convert(

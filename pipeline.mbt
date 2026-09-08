@@ -127,7 +127,7 @@ fn run_pipeline(doc : @dom.Node, options : Options) -> String {
 
   // ② Render
   let out = StringBuilder()
-  render_node(ctx, out, doc)
+  ignore(render_node(ctx, out, doc))
 
   // ③ Post-Render: trim (standard) -> unescape (standard+20) ->
   //    code-block newline restore (late)
