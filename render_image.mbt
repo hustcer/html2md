@@ -27,8 +27,8 @@ fn render_image(ctx : RenderCtx, out : StringBuilder, node : @dom.Node) -> Bool 
     return false
   }
   let src = assemble_absolute_url("img", src, ctx.options.domain)
-  let title = @domext.attr_or(node, "title", "").replace_all(old="\n", new=" ")
-  let alt = @domext.attr_or(node, "alt", "").replace_all(old="\n", new=" ")
+  let title = inline_attribute(node, "title")
+  let alt = inline_attribute(node, "alt")
   let alt = escape_alt(alt)
   out.write_string("![")
   out.write_string(protect_internal_marker_literals(alt))

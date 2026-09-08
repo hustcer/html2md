@@ -12,9 +12,9 @@ fn render_link(ctx : RenderCtx, out : StringBuilder, node : @dom.Node) -> Bool {
   } else {
     assemble_absolute_url("a", raw_href, ctx.options.domain)
   }
-  let title = @domext.attr_or(node, "title", "").replace_all(old="\n", new=" ")
+  let title = inline_attribute(node, "title")
   let buf = StringBuilder()
-  render_children(link_ctx, buf, node)
+  ignore(render_children(link_ctx, buf, node))
   let content = buf.to_string()
   if @textutils.trim_space(content) is "" &&
     ctx.options.link_empty_content_behavior is Skip {

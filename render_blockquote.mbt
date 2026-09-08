@@ -7,7 +7,7 @@ fn render_blockquote(
   node : @dom.Node,
 ) -> Unit {
   let buf = StringBuilder()
-  render_children(ctx, buf, node)
+  ignore(render_children(ctx, buf, node))
   let content = @textutils.trim_space(buf.to_string())
   if content is "" {
     return

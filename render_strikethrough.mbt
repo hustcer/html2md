@@ -6,6 +6,6 @@ fn render_strikethrough(
   node : @dom.Node,
 ) -> Unit {
   let buf = StringBuilder()
-  render_children(ctx, buf, node)
+  ignore(render_children(ctx, buf, node))
   out.write_string(@textutils.delimiter_for_every_line(buf.to_string(), "~~"))
 }

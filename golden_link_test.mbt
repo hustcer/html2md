@@ -6,6 +6,32 @@
 // document, so the trailing space is trimmed — the standalone-correct result.
 
 ///|
+test "link titles preserve literal entity references" {
+  inspect(
+    @html2md.convert(
+      (
+        #|<a href="/url" title="&amp;copy; &amp;#65; &amp;#x22; A&amp;B \&amp;copy;">x</a>
+      ),
+    ),
+    content=(
+      #|[x](/url "&amp;copy; &amp;#65; &amp;#x22; A&amp;B \\&amp;copy;")
+    ),
+  )
+}
+
+///|
+test "link titles normalize CR LF and CRLF from character references" {
+  inspect(
+    @html2md.convert(
+      (
+        #|<a href="/url" title="a&#13;b&#10;c&#13;&#10;d&#13;&#13;e">x</a>
+      ),
+    ),
+    content="[x](/url \"a b c d  e\")",
+  )
+}
+
+///|
 test "link titles preserve literal backslashes" {
   inspect(
     @html2md.convert(
@@ -558,7 +584,7 @@ test "golden link: strong link with spaces and empty spans" {
       "<p>before<strong><span></span><a href=\"/\">with empty span</a><span></span></strong>after</p>",
     ),
     content=(
-      #|before**[with empty span](/)**after
+      #|before<!-- -->**[with empty span](/)**<!-- -->after
     ),
   )
   inspect(
@@ -576,13 +602,13 @@ test "golden link: strong with link and extra text" {
   inspect(
     @html2md.convert("<p>before<strong><a href=\"/\">a</a> b</strong>after</p>"),
     content=(
-      #|before**[a](/) b**after
+      #|before<!-- -->**[a](/) b**after
     ),
   )
   inspect(
     @html2md.convert("<p>before<strong><a href=\"/\">a</a>b</strong>after</p>"),
     content=(
-      #|before**[a](/)b**after
+      #|before<!-- -->**[a](/)b**after
     ),
   )
   inspect(
@@ -590,7 +616,7 @@ test "golden link: strong with link and extra text" {
       "<p>before<strong><a href=\"/\">a</a> b <a href=\"/\">c</a></strong>after</p>",
     ),
     content=(
-      #|before**[a](/) b [c](/)**after
+      #|before<!-- -->**[a](/) b [c](/)**<!-- -->after
     ),
   )
 }
@@ -642,7 +668,7 @@ test "golden link: deeply nested bold/italic with link" {
       "<p>before<b><span><a href=\"/\">middle</a></span></b>after</p>",
     ),
     content=(
-      #|before**[middle](/)**after
+      #|before<!-- -->**[middle](/)**<!-- -->after
     ),
   )
   inspect(
@@ -650,7 +676,7 @@ test "golden link: deeply nested bold/italic with link" {
       "<p>before<b><i><a href=\"/\">inside bold & italic</a></i></b>after</p>",
     ),
     content=(
-      #|before**[*inside bold & italic*](/)**after
+      #|before<!-- -->**[*inside bold & italic*](/)**<!-- -->after
     ),
   )
   inspect(
@@ -658,7 +684,7 @@ test "golden link: deeply nested bold/italic with link" {
       "<p>before<b><i><a href=\"/\">inside bold & italic</a>a</i>b</b>after</p>",
     ),
     content=(
-      #|before***[inside bold & italic](/)a*b**after
+      #|before<!-- -->***[inside bold & italic](/)a*b**after
     ),
   )
   inspect(
@@ -672,7 +698,7 @@ test "golden link: deeply nested bold/italic with link" {
       "<p>before<b><i>italic</i><a href=\"/\">link</a><strong>strong</strong></b>after</p>",
     ),
     content=(
-      #|before***italic*[link](/)strong**after
+      #|before<!-- -->***italic*[link](/)strong**after
     ),
   )
 }

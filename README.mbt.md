@@ -123,6 +123,10 @@ test "escaping" {
 }
 ```
 
+Emphasis runs use invisible inline comments (`<!-- -->`) where needed to keep
+their delimiters separate, including adjacent bold/italic and punctuation
+boundaries. This preserves the text without adding visible spaces.
+
 Escaping can be turned off entirely:
 
 ```mbt check

@@ -90,7 +90,7 @@ fn render_list_container(
   let items : Array[String] = []
   for child in node.children.copy() {
     let buf = StringBuilder()
-    render_node(ctx, buf, child)
+    ignore(render_node(ctx, buf, child))
     let content = @textutils.trim_space(buf.to_string())
     if content != "" {
       items.push(content)
