@@ -8,6 +8,12 @@ pub(all) enum TagType {
 } derive(Eq, Debug)
 
 ///|
+pub extend TagType with Eq::{equal, not_equal}
+
+///|
+pub extend TagType with Debug::{to_repr}
+
+///|
 /// Tags removed entirely in the pre-render phase (registered by the Go `base`
 /// plugin).
 pub fn is_removed_name(name : String) -> Bool {

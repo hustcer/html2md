@@ -81,6 +81,9 @@ pub(all) enum TagType {
   Inline
   Remove
 } derive(Eq, @debug.Debug)
+pub fn TagType::equal(Self, Self) -> Bool
+pub fn TagType::not_equal(Self, Self) -> Bool
+pub fn TagType::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

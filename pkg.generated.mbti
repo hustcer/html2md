@@ -16,22 +16,32 @@ pub(all) suberror ConvertError {
   InvalidConfig(String)
   ParseFailed(String)
 } derive(@debug.Debug)
+pub fn ConvertError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
 pub(all) enum EscapeMode {
   Smart
   Disabled
 } derive(Eq, @debug.Debug)
+pub fn EscapeMode::equal(Self, Self) -> Bool
+pub fn EscapeMode::not_equal(Self, Self) -> Bool
+pub fn EscapeMode::to_repr(Self) -> @debug.Repr
 
 pub(all) enum HeadingStyle {
   Atx
   Setext
 } derive(Eq, @debug.Debug)
+pub fn HeadingStyle::equal(Self, Self) -> Bool
+pub fn HeadingStyle::not_equal(Self, Self) -> Bool
+pub fn HeadingStyle::to_repr(Self) -> @debug.Repr
 
 pub(all) enum LinkBehavior {
   Render
   Skip
 } derive(Eq, @debug.Debug)
+pub fn LinkBehavior::equal(Self, Self) -> Bool
+pub fn LinkBehavior::not_equal(Self, Self) -> Bool
+pub fn LinkBehavior::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
