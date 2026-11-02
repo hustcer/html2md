@@ -19,7 +19,7 @@ pub fn find_first_node(@dom.Node, (@dom.Node) -> Bool) -> @dom.Node?
 
 pub fn first_child(@dom.Node) -> @dom.Node?
 
-pub fn index_in_parent(@dom.Node) -> Int
+pub fn index_in_parent(@dom.Node) -> Int32
 
 pub fn insert_after(@dom.Node, @dom.Node) -> Unit
 

@@ -4,7 +4,7 @@
 // units with UTF-8 percent-encoding, and never treat `+` as a space.
 
 ///|
-fn link(href : String, domain? : String = "") -> String raise {
+fn link(href : String, domain~ : String = "") -> String raise {
   @html2md.convert("<a href=\"\{href}\">x</a>", domain~)
 }
 

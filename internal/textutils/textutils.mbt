@@ -183,7 +183,7 @@ pub fn collapse_inline_code_content(content : String) -> String {
 pub fn calculate_code_fence_occurrences(
   fence_char : Char,
   content : String,
-) -> Int {
+) -> Int32 {
   let mut max = 0
   let mut together = 0
   for ch in content {

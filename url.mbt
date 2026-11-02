@@ -104,7 +104,7 @@ fn percent_encode_query(query : String) -> String {
 }
 
 ///|
-fn has_pct_encoded_triplet(s : String, idx : Int) -> Bool {
+fn has_pct_encoded_triplet(s : String, idx : Int32) -> Bool {
   match (s.get_char(idx + 1), s.get_char(idx + 2)) {
     (Some(a), Some(b)) => is_ascii_hex_digit(a) && is_ascii_hex_digit(b)
     _ => false
@@ -146,14 +146,14 @@ fn write_percent_encoded_utf8(out : StringBuilder, ch : Char) -> Unit {
 }
 
 ///|
-fn write_percent_encoded_byte(out : StringBuilder, byte : Int) -> Unit {
+fn write_percent_encoded_byte(out : StringBuilder, byte : Int32) -> Unit {
   out.write_char('%')
   out.write_char(hex_digit(byte / 16))
   out.write_char(hex_digit(byte % 16))
 }
 
 ///|
-fn hex_digit(n : Int) -> Char {
+fn hex_digit(n : Int32) -> Char {
   if n < 10 {
     ('0'.to_int() + n).unsafe_to_char()
   } else {
@@ -353,7 +353,7 @@ fn split_scheme(domain : String) -> (String, String) {
 }
 
 ///|
-fn find_char(s : String, target : Char) -> Int? {
+fn find_char(s : String, target : Char) -> Int32? {
   for i, ch in s {
     if ch == target {
       return Some(i)
@@ -363,8 +363,8 @@ fn find_char(s : String, target : Char) -> Int? {
 }
 
 ///|
-fn last_index_char(s : String, target : Char) -> Int? {
-  let mut found : Int? = None
+fn last_index_char(s : String, target : Char) -> Int32? {
+  let mut found : Int32? = None
   for i, ch in s {
     if ch == target {
       found = Some(i)

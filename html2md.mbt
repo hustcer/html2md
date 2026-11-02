@@ -19,17 +19,17 @@
 /// ```
 pub fn convert(
   html : String,
-  domain? : String = "",
-  heading_style? : HeadingStyle = Atx,
-  em_delimiter? : String = "*",
-  strong_delimiter? : String = "**",
-  horizontal_rule? : String = "* * *",
-  bullet_list_marker? : String = "-",
-  code_block_fence? : String = "```",
-  escape_mode? : EscapeMode = Smart,
-  link_empty_href_behavior? : LinkBehavior = Render,
-  link_empty_content_behavior? : LinkBehavior = Render,
-  list_end_comment? : Bool = true,
+  domain~ : String = "",
+  heading_style~ : HeadingStyle = Atx,
+  em_delimiter~ : String = "*",
+  strong_delimiter~ : String = "**",
+  horizontal_rule~ : String = "* * *",
+  bullet_list_marker~ : String = "-",
+  code_block_fence~ : String = "```",
+  escape_mode~ : EscapeMode = Smart,
+  link_empty_href_behavior~ : LinkBehavior = Render,
+  link_empty_content_behavior~ : LinkBehavior = Render,
+  list_end_comment~ : Bool = true,
 ) -> String raise ConvertError {
   let doc = @parser.parse(html, sanitize=false) catch {
     err => raise ParseFailed("\{Repr(err)}")
@@ -59,17 +59,17 @@ pub fn convert(
 /// tree must stay untouched.
 pub fn convert_dom(
   doc : @dom.Node,
-  domain? : String = "",
-  heading_style? : HeadingStyle = Atx,
-  em_delimiter? : String = "*",
-  strong_delimiter? : String = "**",
-  horizontal_rule? : String = "* * *",
-  bullet_list_marker? : String = "-",
-  code_block_fence? : String = "```",
-  escape_mode? : EscapeMode = Smart,
-  link_empty_href_behavior? : LinkBehavior = Render,
-  link_empty_content_behavior? : LinkBehavior = Render,
-  list_end_comment? : Bool = true,
+  domain~ : String = "",
+  heading_style~ : HeadingStyle = Atx,
+  em_delimiter~ : String = "*",
+  strong_delimiter~ : String = "**",
+  horizontal_rule~ : String = "* * *",
+  bullet_list_marker~ : String = "-",
+  code_block_fence~ : String = "```",
+  escape_mode~ : EscapeMode = Smart,
+  link_empty_href_behavior~ : LinkBehavior = Render,
+  link_empty_content_behavior~ : LinkBehavior = Render,
+  list_end_comment~ : Bool = true,
 ) -> String raise ConvertError {
   let options = Options::build(
     domain~,

@@ -1,5 +1,5 @@
 ///|
-fn get_heading_level(name : String) -> Int {
+fn get_heading_level(name : String) -> Int32 {
   match name {
     "h1" => 1
     "h2" => 2
@@ -14,7 +14,7 @@ fn get_heading_level(name : String) -> Int {
 /// Width of the widest line in chars, not counting escape markers; setext
 /// underlines below 3 chars could be ambiguous (port of
 /// `commonmark.getUnderlineWidth`).
-fn get_underline_width(content : String, min_val : Int) -> Int {
+fn get_underline_width(content : String, min_val : Int32) -> Int32 {
   let mut width = 0
   for part in content.split("\n") {
     let mut w = 0

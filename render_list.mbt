@@ -1,5 +1,5 @@
 ///|
-fn get_start_at(node : @dom.Node) -> Int {
+fn get_start_at(node : @dom.Node) -> Int32 {
   let raw = @domext.attr_or(node, "start", "1")
   @string.parse_int(raw) catch {
     _ => 1
@@ -9,7 +9,7 @@ fn get_start_at(node : @dom.Node) -> Int {
 ///|
 /// Pad an ordered-list index to `width`, keeping a leading minus sign before
 /// any zero padding.
-fn pad_ordered_list_index(index : Int, width : Int) -> String {
+fn pad_ordered_list_index(index : Int32, width : Int32) -> String {
   let raw = index.to_string()
   match raw.strip_prefix("-") {
     Some(digits) => {
@@ -26,8 +26,8 @@ fn pad_ordered_list_index(index : Int, width : Int) -> String {
 fn make_prefix(
   ctx : RenderCtx,
   node : @dom.Node,
-  slice_length : Int,
-) -> (Int) -> String {
+  slice_length : Int32,
+) -> (Int32) -> String {
   let start_at = get_start_at(node)
   let is_ul = @domext.node_name(node) is "ul"
   let last_index = start_at + slice_length - 1
@@ -35,7 +35,7 @@ fn make_prefix(
     .to_string()
     .length()
     .max(last_index.to_string().length())
-  fn prefix(slice_index : Int) -> String {
+  fn prefix(slice_index : Int32) -> String {
     if is_ul {
       ctx.options.bullet_list_marker + " "
     } else {
@@ -56,7 +56,7 @@ fn make_prefix(
 fn render_multi_line_list_item(
   out : StringBuilder,
   content : String,
-  indent_count : Int,
+  indent_count : Int32,
 ) -> Unit {
   let indent = " ".repeat(indent_count)
   let indented_code_newline = @escape.marker_code_block_newline + indent

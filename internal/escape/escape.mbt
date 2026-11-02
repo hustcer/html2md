@@ -32,7 +32,7 @@ fn is_markdown_char(ch : Char) -> Bool {
 /// Insert an escape marker before each markdown-special character (port of
 /// `converter.escapeContent`). `U+0000` is replaced with the replacement
 /// character for security. A no-op when escaping is disabled.
-pub fn escape_content(content : String, enabled? : Bool = true) -> String {
+pub fn escape_content(content : String, enabled~ : Bool = true) -> String {
   if !enabled {
     return content
   }

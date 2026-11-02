@@ -8,41 +8,41 @@ pub const MARKER_ESCAPING : Char = '\x07'
 
 pub fn escape_content(String, enabled? : Bool) -> String
 
-pub fn is_atx_header(Array[Char], Int) -> Int
+pub fn is_atx_header(Array[Char], Int32) -> Int32
 
-pub fn is_backslash(Array[Char], Int) -> Int
+pub fn is_backslash(Array[Char], Int32) -> Int32
 
-pub fn is_block_quote(Array[Char], Int) -> Int
+pub fn is_block_quote(Array[Char], Int32) -> Int32
 
-pub fn is_divider(Array[Char], Int) -> Int
+pub fn is_divider(Array[Char], Int32) -> Int32
 
-pub fn is_fenced_code(Array[Char], Int) -> Int
+pub fn is_fenced_code(Array[Char], Int32) -> Int32
 
-pub fn is_image_or_link(Array[Char], Int) -> Int
+pub fn is_image_or_link(Array[Char], Int32) -> Int32
 
-pub fn is_inline_code(Array[Char], Int) -> Int
+pub fn is_inline_code(Array[Char], Int32) -> Int32
 
-pub fn is_italic_or_bold(Array[Char], Int) -> Int
+pub fn is_italic_or_bold(Array[Char], Int32) -> Int32
 
-pub fn is_ordered_list(Array[Char], Int) -> Int
+pub fn is_ordered_list(Array[Char], Int32) -> Int32
 
-pub fn is_setext_header(Array[Char], Int) -> Int
+pub fn is_setext_header(Array[Char], Int32) -> Int32
 
-pub fn is_strikethrough(Array[Char], Int) -> Int
+pub fn is_strikethrough(Array[Char], Int32) -> Int32
 
-pub fn is_unordered_list(Array[Char], Int) -> Int
+pub fn is_unordered_list(Array[Char], Int32) -> Int32
 
 pub let marker_code_block_newline : String
 
 pub let marker_escaping : String
 
-pub fn unescape_content(String, Array[(Array[Char], Int) -> Int], enabled? : Bool) -> String
+pub fn unescape_content(String, Array[(Array[Char], Int32) -> Int32], enabled? : Bool) -> String
 
 // Errors
 
 // Types and methods
 
 // Type aliases
-pub type UnEscaper = (Array[Char], Int) -> Int
+pub type UnEscaper = (Array[Char], Int32) -> Int32
 
 // Traits

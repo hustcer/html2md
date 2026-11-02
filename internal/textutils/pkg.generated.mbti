@@ -4,7 +4,7 @@ package "hustcer/html2md/internal/textutils"
 // Values
 pub fn calculate_code_fence(Char, String) -> String
 
-pub fn calculate_code_fence_occurrences(Char, String) -> Int
+pub fn calculate_code_fence_occurrences(Char, String) -> Int32
 
 pub fn collapse_inline_code_content(String) -> String
 

@@ -25,7 +25,7 @@ pub fn is_element(node : @dom.Node) -> Bool {
 ///|
 /// Index of `node` in its parent's child list (identity comparison), or -1
 /// when detached.
-pub fn index_in_parent(node : @dom.Node) -> Int {
+pub fn index_in_parent(node : @dom.Node) -> Int32 {
   guard node.parent is Some(parent) else { return -1 }
   for i, child in parent.children {
     if physical_equal(child, node) {
@@ -154,7 +154,7 @@ fn escape_data(data : String) -> String {
 /// Debug representation of a DOM subtree for snapshot tests.
 pub fn dump(node : @dom.Node) -> String {
   let out = StringBuilder()
-  fn walk(current : @dom.Node, depth : Int) {
+  fn walk(current : @dom.Node, depth : Int32) {
     out.write_string("  ".repeat(depth))
     match current.kind {
       Text => out.write_string("#text \"\{escape_data(current.data)}\"")

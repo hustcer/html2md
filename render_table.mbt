@@ -11,30 +11,30 @@ priv struct TableRow {
 
 ///|
 priv struct PendingTableCell {
-  row : Int
-  col : Int
+  row : Int32
+  col : Int32
   cell : TableCell
 }
 
 ///|
 priv struct TableSpanBudget {
-  mut remaining : Int
+  mut remaining : Int32
 }
 
 ///|
-const MAX_TABLE_COL_SPAN : Int = 1000
+const MAX_TABLE_COL_SPAN : Int32 = 1000
 
 ///|
-const MAX_TABLE_ROW_SPAN : Int = 65534
+const MAX_TABLE_ROW_SPAN : Int32 = 65534
 
 ///|
 /// Maximum number of placeholder cells introduced by spans in one table.
-const MAX_TABLE_SPAN_EXPANSION : Int = 1000
+const MAX_TABLE_SPAN_EXPANSION : Int32 = 1000
 
 ///|
 /// Maximum size of the normalized rectangular Markdown table. Larger tables
 /// fall back to rendering their child content without table padding.
-const MAX_TABLE_RENDER_CELLS : Int = 100000
+const MAX_TABLE_RENDER_CELLS : Int32 = 100000
 
 ///|
 fn render_table(ctx : RenderCtx, out : StringBuilder, node : @dom.Node) -> Bool {
@@ -138,8 +138,8 @@ fn build_table_rows(
 fn build_table_row(
   ctx : RenderCtx,
   row_node : @dom.Node,
-  row_index : Int,
-  row_count : Int,
+  row_index : Int32,
+  row_count : Int32,
   pending : Array[PendingTableCell],
   span_budget : TableSpanBudget,
 ) -> TableRow? {
@@ -199,10 +199,10 @@ fn build_table_row(
 
 ///|
 fn take_table_spans(
-  requested_col_span : Int,
-  requested_row_span : Int,
+  requested_col_span : Int32,
+  requested_row_span : Int32,
   budget : TableSpanBudget,
-) -> (Int, Int) {
+) -> (Int32, Int32) {
   let col_span = requested_col_span.min(budget.remaining + 1)
   budget.remaining -= col_span - 1
   let row_span = requested_row_span.min(1 + budget.remaining / col_span)
@@ -214,8 +214,8 @@ fn take_table_spans(
 fn drain_pending_table_cells(
   cells : Array[TableCell],
   pending : Array[PendingTableCell],
-  row_index : Int,
-  start_col : Int,
+  row_index : Int32,
+  start_col : Int32,
 ) -> Unit {
   let mut col_index = start_col
   let mut keep_going = true
@@ -233,8 +233,8 @@ fn drain_pending_table_cells(
 ///|
 fn pop_pending_table_cell(
   pending : Array[PendingTableCell],
-  row_index : Int,
-  col_index : Int,
+  row_index : Int32,
+  col_index : Int32,
 ) -> TableCell? {
   for i in 0..<pending.length() {
     let item = pending[i]
@@ -263,8 +263,8 @@ fn normalize_table_align(value : String) -> String {
 ///|
 fn parse_table_span(
   value : String,
-  max_value? : Int = MAX_TABLE_COL_SPAN,
-) -> Int {
+  max_value~ : Int32 = MAX_TABLE_COL_SPAN,
+) -> Int32 {
   let max_value = max_value.max(1)
   let mut span = 0
   for ch in value {
@@ -326,7 +326,7 @@ fn escape_table_pipes(content : String) -> String {
 }
 
 ///|
-fn table_column_count(rows : Array[TableRow]) -> Int {
+fn table_column_count(rows : Array[TableRow]) -> Int32 {
   let mut count = 0
   for row in rows {
     if row.cells.length() > count {
@@ -337,7 +337,7 @@ fn table_column_count(rows : Array[TableRow]) -> Int {
 }
 
 ///|
-fn table_cell_at(row : TableRow, index : Int) -> String {
+fn table_cell_at(row : TableRow, index : Int32) -> String {
   match row.cells.get(index) {
     Some(cell) => cell.content
     None => ""
@@ -345,7 +345,7 @@ fn table_cell_at(row : TableRow, index : Int) -> String {
 }
 
 ///|
-fn table_align_at(row : TableRow, index : Int) -> String {
+fn table_align_at(row : TableRow, index : Int32) -> String {
   match row.cells.get(index) {
     Some(cell) => cell.align
     None => ""
@@ -356,7 +356,7 @@ fn table_align_at(row : TableRow, index : Int) -> String {
 fn write_table_row(
   out : StringBuilder,
   row : TableRow,
-  column_count : Int,
+  column_count : Int32,
 ) -> Unit {
   out.write_char('|')
   for i in 0..<column_count {
@@ -371,7 +371,7 @@ fn write_table_row(
 fn write_table_delimiter(
   out : StringBuilder,
   header : TableRow,
-  column_count : Int,
+  column_count : Int32,
 ) -> Unit {
   out.write_char('|')
   for i in 0..<column_count {

@@ -1,6 +1,6 @@
 ///|
 /// Include DOM construction and cycle cleanup in every measured iteration.
-fn bench_text_merge(it : @bench.T, count : Int) -> Unit {
+fn bench_text_merge(it : @bench.T, count : Int32) -> Unit {
   let text = "abcdefghij".repeat(8)
   it.bench(fn() {
     let node = @dom.element(

@@ -16,7 +16,7 @@ fn is_digit_char(ch : Char) -> Bool {
 ///|
 /// Previous non-marker char, or NUL when none (port of `escape.getPrev` /
 /// `getPrevAsRune`, which coincide in char space).
-fn get_prev(chars : Array[Char], index : Int) -> Char {
+fn get_prev(chars : Array[Char], index : Int32) -> Char {
   for i = index - 1; i >= 0; i = i - 1 {
     if chars[i] != MARKER_ESCAPING {
       return chars[i]
@@ -28,7 +28,7 @@ fn get_prev(chars : Array[Char], index : Int) -> Char {
 ///|
 /// Next non-marker char, or NUL when none (port of `escape.getNext` /
 /// `getNextAsRune`).
-fn get_next(chars : Array[Char], index : Int) -> Char {
+fn get_next(chars : Array[Char], index : Int32) -> Char {
   for i = index + 1; i < chars.length(); i = i + 1 {
     if chars[i] != MARKER_ESCAPING {
       return chars[i]
@@ -40,7 +40,7 @@ fn get_next(chars : Array[Char], index : Int) -> Char {
 ///|
 /// `*`/`_` is emphasis only when not followed by whitespace (port of
 /// `escape.IsItalicOrBold`).
-pub fn is_italic_or_bold(chars : Array[Char], index : Int) -> Int {
+pub fn is_italic_or_bold(chars : Array[Char], index : Int32) -> Int32 {
   if !(chars[index] is ('*' | '_')) {
     return -1
   }
@@ -54,7 +54,7 @@ pub fn is_italic_or_bold(chars : Array[Char], index : Int) -> Int {
 ///|
 /// `~~` starts or ends GFM strikethrough when the second tilde is adjacent
 /// modulo escape markers.
-pub fn is_strikethrough(chars : Array[Char], index : Int) -> Int {
+pub fn is_strikethrough(chars : Array[Char], index : Int32) -> Int32 {
   if chars[index] != '~' {
     return -1
   }
@@ -68,7 +68,7 @@ pub fn is_strikethrough(chars : Array[Char], index : Int) -> Int {
 ///|
 /// `>` is a block quote only at the (whitespace-only) start of a line (port
 /// of `escape.IsBlockQuote`).
-pub fn is_block_quote(chars : Array[Char], index : Int) -> Int {
+pub fn is_block_quote(chars : Array[Char], index : Int32) -> Int32 {
   if chars[index] != '>' {
     return -1
   }
@@ -81,7 +81,7 @@ pub fn is_block_quote(chars : Array[Char], index : Int) -> Int {
 ///|
 /// Scan backwards from `index`; true when everything until the line start (or
 /// buffer start) is space or marker.
-fn only_space_before_line_start(chars : Array[Char], index : Int) -> Bool {
+fn only_space_before_line_start(chars : Array[Char], index : Int32) -> Bool {
   for i = index - 1; i >= 0; i = i - 1 {
     if chars[i] == '\n' {
       break
@@ -97,7 +97,7 @@ fn only_space_before_line_start(chars : Array[Char], index : Int) -> Bool {
 ///|
 /// `#` is an ATX heading marker at line start, with 1..6 signs followed by
 /// whitespace/EOL (port of `escape.IsAtxHeader`).
-pub fn is_atx_header(chars : Array[Char], index : Int) -> Int {
+pub fn is_atx_header(chars : Array[Char], index : Int32) -> Int32 {
   if chars[index] != '#' {
     return -1
   }
@@ -128,7 +128,7 @@ pub fn is_atx_header(chars : Array[Char], index : Int) -> Int {
 ///|
 /// `=`/`-` underlines a setext heading when the previous non-empty line holds
 /// the heading content (port of `escape.IsSetextHeader`).
-pub fn is_setext_header(chars : Array[Char], index : Int) -> Int {
+pub fn is_setext_header(chars : Array[Char], index : Int32) -> Int32 {
   if !(chars[index] is ('=' | '-')) {
     return -1
   }
@@ -156,7 +156,7 @@ pub fn is_setext_header(chars : Array[Char], index : Int) -> Int {
 ///|
 /// `-`/`_`/`*` repeated 3+ times on an otherwise blank line is a thematic
 /// break (port of `escape.IsDivider`).
-pub fn is_divider(chars : Array[Char], index : Int) -> Int {
+pub fn is_divider(chars : Array[Char], index : Int32) -> Int32 {
   if !(chars[index] is ('-' | '_' | '*')) {
     return -1
   }
@@ -191,7 +191,7 @@ pub fn is_divider(chars : Array[Char], index : Int) -> Int {
 ///|
 /// `.`/`)` after digits at line start is an ordered-list marker (port of
 /// `escape.IsOrderedList`).
-pub fn is_ordered_list(chars : Array[Char], index : Int) -> Int {
+pub fn is_ordered_list(chars : Array[Char], index : Int32) -> Int32 {
   if !(chars[index] is ('.' | ')')) {
     return -1
   }
@@ -220,7 +220,7 @@ pub fn is_ordered_list(chars : Array[Char], index : Int) -> Int {
 ///|
 /// `-`/`*`/`+` at line start followed by whitespace is an unordered-list
 /// marker (port of `escape.IsUnorderedList`).
-pub fn is_unordered_list(chars : Array[Char], index : Int) -> Int {
+pub fn is_unordered_list(chars : Array[Char], index : Int32) -> Int32 {
   if !(chars[index] is ('-' | '*' | '+')) {
     return -1
   }
@@ -238,7 +238,7 @@ pub fn is_unordered_list(chars : Array[Char], index : Int) -> Int {
 ///|
 /// `![` starts an image, `[...]` an inline link (port of
 /// `escape.IsImageOrLink`).
-pub fn is_image_or_link(chars : Array[Char], index : Int) -> Int {
+pub fn is_image_or_link(chars : Array[Char], index : Int32) -> Int32 {
   if chars[index] == '!' {
     let next_index = index + 1
     if next_index < chars.length() && chars[next_index] == '[' {
@@ -263,7 +263,7 @@ pub fn is_image_or_link(chars : Array[Char], index : Int) -> Int {
 ///|
 /// `` ` ``/`~` repeated 3+ times at line start is a fenced code block (port
 /// of `escape.IsFencedCode`).
-pub fn is_fenced_code(chars : Array[Char], index : Int) -> Int {
+pub fn is_fenced_code(chars : Array[Char], index : Int32) -> Int32 {
   if !(chars[index] is ('`' | '~')) {
     return -1
   }
@@ -302,7 +302,7 @@ pub fn is_fenced_code(chars : Array[Char], index : Int) -> Int {
 ///|
 /// A backtick always needs escaping in case it starts inline code (port of
 /// `escape.IsInlineCode`).
-pub fn is_inline_code(chars : Array[Char], index : Int) -> Int {
+pub fn is_inline_code(chars : Array[Char], index : Int32) -> Int32 {
   if chars[index] != '`' {
     -1
   } else {
@@ -312,7 +312,7 @@ pub fn is_inline_code(chars : Array[Char], index : Int) -> Int {
 
 ///|
 /// A backslash escapes the following character (port of `escape.IsBackslash`).
-pub fn is_backslash(chars : Array[Char], index : Int) -> Int {
+pub fn is_backslash(chars : Array[Char], index : Int32) -> Int32 {
   if chars[index] != '\\' {
     -1
   } else {

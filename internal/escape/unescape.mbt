@@ -5,7 +5,7 @@
 ///
 /// `chars` is the full content as a char array; `index` is the position right
 /// after the marker.
-pub type UnEscaper = (Array[Char], Int) -> Int
+pub type UnEscaper = (Array[Char], Int32) -> Int32
 
 ///|
 /// Resolve escape markers (port of `converter.unEscapeContent`): for each
@@ -17,7 +17,7 @@ pub type UnEscaper = (Array[Char], Int) -> Int
 pub fn unescape_content(
   content : String,
   handlers : Array[UnEscaper],
-  enabled? : Bool = true,
+  enabled~ : Bool = true,
 ) -> String {
   if !enabled {
     return content

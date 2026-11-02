@@ -7,7 +7,10 @@
 ///|
 /// Run an un-escaper at every index of `input` and collect the results,
 /// mirroring the `for index := range chars` loops in the Go tests.
-fn all_results(f : (Array[Char], Int) -> Int, input : String) -> Array[Int] {
+fn all_results(
+  f : (Array[Char], Int32) -> Int32,
+  input : String,
+) -> Array[Int32] {
   let chars = input.to_array()
   let out = []
   for i in 0..<chars.length() {
