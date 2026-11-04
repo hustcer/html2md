@@ -1,11 +1,12 @@
 ///|
 /// How a tag behaves during conversion, mirroring `converter.tagType` of the
 /// Go library.
+#derive(Eq, Debug)
 pub(all) enum TagType {
   Block
   Inline
   Remove
-} derive(Eq, Debug)
+}
 
 ///|
 pub extend TagType with Eq::{equal, not_equal}

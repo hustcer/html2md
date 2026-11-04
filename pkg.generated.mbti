@@ -12,33 +12,37 @@ pub fn convert(String, domain? : String, heading_style? : HeadingStyle, em_delim
 pub fn convert_dom(@dom.Node, domain? : String, heading_style? : HeadingStyle, em_delimiter? : String, strong_delimiter? : String, horizontal_rule? : String, bullet_list_marker? : String, code_block_fence? : String, escape_mode? : EscapeMode, link_empty_href_behavior? : LinkBehavior, link_empty_content_behavior? : LinkBehavior, list_end_comment? : Bool) -> String raise ConvertError
 
 // Errors
+#derive(@debug.Debug)
 pub(all) suberror ConvertError {
   InvalidConfig(String)
   ParseFailed(String)
-} derive(@debug.Debug)
+}
 pub fn ConvertError::to_repr(Self) -> @debug.Repr
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) enum EscapeMode {
   Smart
   Disabled
-} derive(Eq, @debug.Debug)
+}
 pub fn EscapeMode::equal(Self, Self) -> Bool
 pub fn EscapeMode::not_equal(Self, Self) -> Bool
 pub fn EscapeMode::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum HeadingStyle {
   Atx
   Setext
-} derive(Eq, @debug.Debug)
+}
 pub fn HeadingStyle::equal(Self, Self) -> Bool
 pub fn HeadingStyle::not_equal(Self, Self) -> Bool
 pub fn HeadingStyle::to_repr(Self) -> @debug.Repr
 
+#derive(Eq, @debug.Debug)
 pub(all) enum LinkBehavior {
   Render
   Skip
-} derive(Eq, @debug.Debug)
+}
 pub fn LinkBehavior::equal(Self, Self) -> Bool
 pub fn LinkBehavior::not_equal(Self, Self) -> Bool
 pub fn LinkBehavior::to_repr(Self) -> @debug.Repr

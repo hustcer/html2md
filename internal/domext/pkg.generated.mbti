@@ -76,11 +76,12 @@ pub fn wrap_node(@dom.Node, @dom.Node) -> @dom.Node
 // Errors
 
 // Types and methods
+#derive(Eq, @debug.Debug)
 pub(all) enum TagType {
   Block
   Inline
   Remove
-} derive(Eq, @debug.Debug)
+}
 pub fn TagType::equal(Self, Self) -> Bool
 pub fn TagType::not_equal(Self, Self) -> Bool
 pub fn TagType::to_repr(Self) -> @debug.Repr
