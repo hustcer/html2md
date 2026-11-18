@@ -40,7 +40,7 @@ Notable changes to `hustcer/html2md` are documented here.
   escaping as a result of correctness fixes. Consumers comparing exact output
   strings may need to update their snapshots.
 
-## [0.1.1] — 2026-07-14
+## 0.1.1 — 2026-07-14
 
 ### Fixed
 
@@ -49,7 +49,7 @@ Notable changes to `hustcer/html2md` are documented here.
 - Bound table spans and validate code language metadata.
 - Apply empty-link behavior before resolving URLs against a domain.
 
-## [0.1.0] — 2026-06-13
+## 0.1.0 — 2026-06-13
 
 ### Added
 
