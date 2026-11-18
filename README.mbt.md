@@ -7,8 +7,8 @@ This is a MoonBit port of the Go library
 
 ## Features
 
-- HTML-string entry via `convert`, plus `convert_dom` for already-parsed DOM
-  nodes, with the same CommonMark option set on both paths.
+- HTML-string conversion via `convert`, with an embedded HTML parser.
+  Use `parse_dom` and `convert_dom` to edit the tree before conversion.
 - Markdown image rendering for `<img>` and GFM pipe-table rendering for
   `<table>`.
 - GFM strikethrough for `s`, `del` and `strike` tags.
@@ -162,10 +162,31 @@ test "domain" {
 }
 ```
 
+### Convert a DOM tree
+
+Use `parse_dom` to obtain a mutable document or import
+`hustcer/html2md/dom` to construct nodes. `convert_dom` normalizes the
+input tree in place. Pass `clone_node(deep=true)` when reusing the original
+tree after conversion.
+
+```mbt check
+///|
+test "convert a DOM copy" {
+  let doc = @html2md.parse_dom("<p>Hello <strong>MoonBit</strong></p>")
+  inspect(
+    @html2md.convert_dom(doc.clone_node(deep=true)),
+    content="Hello **MoonBit**",
+  )
+}
+```
+
+To migrate from an upstream `bobzhang/html_parser/dom.Node`, replace the old
+`parse(...).root` call with `@html2md.parse_dom(...)`. For nodes you build
+directly, import `hustcer/html2md/dom` in place of the upstream DOM package.
+
 ## Options
 
-`convert` (and `convert_dom`, which takes an already-parsed
-`@html_parser/dom.Node`) accept the following labeled options:
+`convert` and `convert_dom` accept the following labeled options.
 
 | Option                        | Type           | Default   | Notes                                            |
 | ----------------------------- | -------------- | --------- | ------------------------------------------------ |
@@ -194,6 +215,17 @@ moon test --target all
 moon info
 ```
 
+The embedded parser uses a generated table for named character references.
+After editing its source mapping, regenerate and verify the table from the
+module root.
+
+```sh
+moon run --target native scripts/generate_named_entities.mbtx
+moon fmt
+moon run --target native scripts/generate_named_entities.mbtx --check
+```
+
 ## License
 
-Apache-2.0
+Apache-2.0. See [third-party notices](THIRD_PARTY_NOTICES.md) for the embedded
+parser's provenance and licensing.

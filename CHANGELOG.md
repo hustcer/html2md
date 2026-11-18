@@ -2,6 +2,14 @@
 
 Notable changes to `hustcer/html2md` are documented here.
 
+## Unreleased
+
+- Embed the HTML parser and compact entity table from `html_parser` commit
+  `53978cf`. Mooncakes consumers get the smaller native parser through the
+  standard `html2md` dependency.
+- `convert_dom` takes a node from `hustcer/html2md/dom`. Use the new
+  `parse_dom` entry point to parse HTML into that node type.
+
 ## 0.1.2 — 2026-09-08
 
 ### Fixed

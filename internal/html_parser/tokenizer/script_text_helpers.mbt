@@ -1,0 +1,65 @@
+///|
+fn skip_script_text_char(
+  input : StringView,
+  pos : Int32,
+  errors : Array[SpecialTextError],
+) -> Int32 {
+  match input.get_char(pos) {
+    Some('\u{0000}') => {
+      errors.push({ code: "unexpected-null-character", offset: pos, })
+      pos + 1
+    }
+    Some(ch) => pos + ch.utf16_len()
+    None => pos
+  }
+}
+
+///|
+fn write_script_text_char(
+  input : StringView,
+  pos : Int32,
+  out : StringBuilder,
+  errors : Array[SpecialTextError],
+) -> Int32 {
+  match input.get_char(pos) {
+    Some('\u{0000}') => {
+      errors.push({ code: "unexpected-null-character", offset: pos, })
+      out.write_char('\u{FFFD}')
+      pos + 1
+    }
+    Some(_) => @syn.write_normalized_char(input, pos, out)
+    None => pos
+  }
+}
+
+///|
+fn script_end_tag_at(input : StringView, pos : Int32) -> Bool {
+  // This runs for every character of script text: peeking for '<' first
+  // skips the view allocation and case-insensitive compare on the vast
+  // majority of positions; the explicit bounds check lets direct
+  // indexing avoid the Char? boxing of get_char.
+  if !(pos < input.length() && input[pos] is '<') {
+    return false
+  }
+  let needle = "</script"
+  if @syn.starts_with_case_insensitive(input, pos, needle) {
+    script_end_tag_boundary(input.get_char(pos + needle.length()))
+  } else {
+    false
+  }
+}
+
+///|
+fn script_end_tag_boundary(ch : Char?) -> Bool {
+  ch is Some(ch) && is_tag_name_end(ch)
+}
+
+///|
+fn script_escape_boundary(ch : Char) -> Bool {
+  ch.is_ascii_whitespace() || ch == '/' || ch == '>'
+}
+
+///|
+fn temp_is_script(temp : String) -> Bool {
+  temp[:].compare_ignore_ascii_case("script") == 0
+}

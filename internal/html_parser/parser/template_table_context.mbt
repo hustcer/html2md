@@ -1,0 +1,467 @@
+///|
+fn Parser::handle_template_table_context_start_tag(
+  self : Parser,
+  name : String,
+  attrs : Map[String, String?],
+  start : Int32,
+) -> Bool {
+  if !self.template_table_context_mode_active() {
+    return false
+  }
+  if name == "table" {
+    self.error_at("unexpected-start-tag-implies-end-tag", start)
+    self.error_at("unexpected-end-tag", start)
+    return true
+  }
+  if name == "caption" {
+    if !self.close_open_template_content_section() {
+      match self.template_content_mode() {
+        "row" | "table-body" => {
+          // A caption after row or cell content acts as an end tag with
+          // nothing in scope: parse error, ignore. With an open section
+          // the in-table-body rules close it and the caption inserts.
+          self.error_at("unexpected-start-tag", start)
+          return true
+        }
+        _ => ()
+      }
+    }
+    let node = self.node_with_origin(@dom.element("caption", attrs~), start)
+    self.current_node().append_child(node)
+    self.push_open_element(node)
+    self.push_active_formatting_marker()
+    self.disable_current_template_table_context_mode()
+    return true
+  }
+  if (name == "col" || name == "colgroup") &&
+    !self.close_open_template_content_section() &&
+    (
+      self.template_content_mode() == "row" ||
+      self.template_content_mode() == "table-body"
+    ) {
+    self.error_at("unexpected-start-tag", start)
+    return true
+  }
+  if name == "col" {
+    let colgroup = @dom.element("colgroup")
+    self.current_node().append_child(colgroup)
+    colgroup.append_child(
+      self.node_with_origin(@dom.element("col", attrs~), start),
+    )
+    self.push_open_element(colgroup)
+    self.disable_current_template_table_context_mode()
+    self.template_detached_column_group_mode = !self.in_template_content_without_inner_table()
+    return true
+  }
+  if name == "colgroup" {
+    let node = self.node_with_origin(@dom.element("colgroup", attrs~), start)
+    self.current_node().append_child(node)
+    self.push_open_element(node)
+    self.disable_current_template_table_context_mode()
+    self.template_detached_column_group_mode = !self.in_template_content_without_inner_table()
+    return true
+  }
+  if name == "tbody" || name == "tfoot" || name == "thead" {
+    if !self.close_open_template_content_section() {
+      match self.template_content_mode() {
+        "row" | "table-body" => {
+          // A section start tag after row or cell content acts as an end
+          // tag that finds nothing in scope: parse error, ignore. With
+          // an open section the in-table-body rules close it first and
+          // the new section inserts after it.
+          self.error_at("unexpected-start-tag", start)
+          return true
+        }
+        _ => ()
+      }
+    }
+    let node = self.node_with_origin(@dom.element(name, attrs~), start)
+    self.current_node().append_child(node)
+    self.push_open_element(node)
+    self.disable_current_template_table_context_mode()
+    return true
+  }
+  if name == "tr" {
+    match self.template_content_mode() {
+      "row" => {
+        // In-row tr acts as </tr> with no row in scope: ignore.
+        self.error_at("unexpected-start-tag", start)
+        return true
+      }
+      "table" => {
+        // In-table tr synthesizes a table body section.
+        let section = @dom.element("tbody")
+        self.current_node().append_child(section)
+        self.push_open_element(section)
+        let row = self.node_with_origin(@dom.element("tr"), start)
+        section.append_child(row)
+        self.push_open_element(row)
+        self.disable_current_template_table_context_mode()
+        return true
+      }
+      _ => {
+        // In-template and in-table-body insert a bare row.
+        let row = self.node_with_origin(@dom.element("tr", attrs~), start)
+        self.current_node().append_child(row)
+        self.push_open_element(row)
+        self.disable_current_template_table_context_mode()
+        return true
+      }
+    }
+  }
+  if name == "td" || name == "th" {
+    let mode = self.template_content_mode()
+    if mode == "table" {
+      // In-table cell synthesizes a section and a row.
+      let section = @dom.element("tbody")
+      self.current_node().append_child(section)
+      self.push_open_element(section)
+      let row = @dom.element("tr")
+      section.append_child(row)
+      self.push_open_element(row)
+    } else if mode == "table-body" {
+      // In-table-body cell synthesizes a bare row.
+      self.error_at("unexpected-cell-in-table-body", start)
+      let row = @dom.element("tr")
+      self.current_node().append_child(row)
+      self.push_open_element(row)
+    }
+    let cell = self.node_with_origin(@dom.element(name, attrs~), start)
+    self.current_node().append_child(cell)
+    self.push_open_element(cell)
+    self.push_active_formatting_marker()
+    self.disable_current_template_table_context_mode()
+    return true
+  }
+  false
+}
+
+///|
+fn Parser::report_template_table_context_fostered_start(
+  self : Parser,
+  name : StringView,
+  start : Int32,
+) -> Unit {
+  if !self.template_table_context_mode_active() {
+    return
+  }
+  match name {
+    "html" | "script" | "style" | "template" => ()
+    _ => self.error_at("foster-parenting-start-tag", start)
+  }
+}
+
+///|
+fn template_table_context_end_tag_defers_voodoo(name : StringView) -> Bool {
+  name is ("colgroup" | "tr")
+}
+
+///|
+fn template_table_context_section_end_tag_reports_unexpected(
+  name : StringView,
+) -> Bool {
+  name is ("tbody" | "tfoot" | "thead")
+}
+
+///|
+fn Parser::handle_template_table_context_end_tag(
+  self : Parser,
+  name : String,
+  start : Int32,
+) -> Bool {
+  if !self.in_template_content_without_inner_table() {
+    return false
+  }
+  if template_table_context_end_tag_defers_voodoo(name) &&
+    self.close_open_element(name) {
+    self.record_template_content_close(name)
+    self.enable_template_table_context_mode()
+    return true
+  }
+  if template_table_context_section_end_tag_reports_unexpected(name) &&
+    self.close_open_element(name) {
+    self.error_at("unexpected-end-tag", start)
+    self.record_template_content_close(name)
+    self.enable_template_table_context_mode()
+    return true
+  }
+  false
+}
+
+///|
+fn Parser::record_template_content_close(self : Parser, name : String) -> Unit {
+  match name {
+    "td" | "th" => self.set_template_content_mode("row")
+    "tr" => self.set_template_content_mode("table-body")
+    "tbody" | "tfoot" | "thead" | "caption" | "colgroup" =>
+      self.set_template_content_mode("table")
+    _ => ()
+  }
+}
+
+///|
+/// Flow content (anything but a cell or an in-head element) arriving while
+/// the current node is a bare template-content row is foster-parented into
+/// the row's parent — the row stays open for later cells, mirroring the
+/// in-row anything-else handling without a real table.
+fn Parser::bare_template_row_fosters(self : Parser, name : StringView) -> Bool {
+  if name == "td" ||
+    name == "th" ||
+    name == "tr" ||
+    name == "template" ||
+    name == "script" ||
+    name == "style" ||
+    name == "caption" ||
+    name == "col" ||
+    name == "colgroup" ||
+    name == "tbody" ||
+    name == "tfoot" ||
+    name == "thead" ||
+    name == "table" {
+    // Cells, in-head elements, and table-structural tags are not flow
+    // content; they take the row/table-body structural handling.
+    return false
+  }
+  if !self.in_template_content_without_inner_table() {
+    return false
+  }
+  let len = self.stack.length()
+  if len < 2 {
+    return false
+  }
+  let last = self.stack[len - 1]
+  let below = self.stack[len - 2]
+  last.kind == Element &&
+  (
+    last.name == "tr" ||
+    last.name == "tbody" ||
+    last.name == "tfoot" ||
+    last.name == "thead"
+  ) &&
+  (last.ns is None || last.ns is Some("html")) &&
+  below.kind == Element &&
+  below.name == "template"
+}
+
+///|
+/// Closes an open table section (and any open row) sitting above the
+/// current template on the stack, recording table mode. Returns true when
+/// a section was open: the in-table-body rules close it and let the
+/// caption or column group insert after it instead of being ignored.
+fn Parser::close_open_template_content_section(self : Parser) -> Bool {
+  let template_index = self.last_open_template_index()
+  if template_index < 0 {
+    return false
+  }
+  let mut section_index = -1
+  let mut index = self.stack.length()
+  while index > template_index + 1 {
+    index -= 1
+    let node = self.stack[index]
+    if node.kind == Element &&
+      (node.name == "tbody" || node.name == "tfoot" || node.name == "thead") &&
+      (node.ns is None || node.ns is Some("html")) {
+      section_index = index
+      break
+    }
+  }
+  if section_index < 0 {
+    return false
+  }
+  while self.stack.length() > section_index {
+    ignore(self.pop_open_element())
+  }
+  self.set_template_content_mode("table")
+  true
+}
+
+///|
+/// Prepares a bare template-content row for an incoming start tag: cells
+/// clear the stack back to the row (popping fostered flow elements), and
+/// table-structural tags close the row (acting as </tr>) so the mode
+/// handler can gate or reprocess them.
+fn Parser::prepare_bare_template_row_start(
+  self : Parser,
+  name : StringView,
+) -> Unit {
+  if !self.in_template_content_without_inner_table() {
+    return
+  }
+  let template_index = self.last_open_template_index()
+  let mut row_index = -1
+  let mut index = self.stack.length()
+  while index > template_index + 1 {
+    index -= 1
+    let node = self.stack[index]
+    if node.kind == Element &&
+      node.name == "tr" &&
+      (node.ns is None || node.ns is Some("html")) {
+      row_index = index
+      break
+    }
+  }
+  if row_index < 0 {
+    if name == "tr" || name == "td" || name == "th" {
+      // With an open section but no open row, pop foster-parented flow
+      // elements back to the section so rows and cells enter it.
+      let mut section_index = -1
+      index = self.stack.length()
+      while index > template_index + 1 {
+        index -= 1
+        let node = self.stack[index]
+        if node.kind == Element &&
+          (node.name == "tbody" || node.name == "tfoot" || node.name == "thead") &&
+          (node.ns is None || node.ns is Some("html")) {
+          section_index = index
+          break
+        }
+      }
+      if section_index >= 0 && section_index < self.stack.length() - 1 {
+        while self.stack.length() > section_index + 1 {
+          ignore(self.pop_open_element())
+        }
+      }
+    }
+    return
+  }
+  if name == "td" || name == "th" {
+    let mut popped_cell = false
+    while self.stack.length() > row_index + 1 {
+      match self.pop_open_element() {
+        Some(node) =>
+          if node.kind == Element &&
+            (node.name == "td" || node.name == "th") &&
+            (node.ns is None || node.ns is Some("html")) {
+            popped_cell = true
+          }
+        None => ()
+      }
+    }
+    if popped_cell {
+      // The implied close of the previous cell clears its formatting
+      // marker, so stale formatting does not reconstruct into the next
+      // cell.
+      self.clear_active_formatting_to_marker()
+    }
+    return
+  }
+  if name == "tr" ||
+    name == "caption" ||
+    name == "col" ||
+    name == "colgroup" ||
+    name == "tbody" ||
+    name == "tfoot" ||
+    name == "thead" ||
+    name == "table" {
+    let mut popped_cell = false
+    while self.stack.length() > row_index {
+      match self.pop_open_element() {
+        Some(node) =>
+          if node.kind == Element &&
+            (node.name == "td" || node.name == "th") &&
+            (node.ns is None || node.ns is Some("html")) {
+            popped_cell = true
+          }
+        None => ()
+      }
+    }
+    if popped_cell {
+      // Closing the row through an open cell also clears the cell's
+      // formatting marker.
+      self.clear_active_formatting_to_marker()
+    }
+    // A select popped with the row no longer holds the parser in select
+    // mode.
+    self.reset_select_insertion_mode()
+    self.set_template_content_mode("table-body")
+    self.enable_template_table_context_mode()
+  }
+}
+
+///|
+/// True when the current node can host the template content's table
+/// machinery: the template itself or an open table-structure element.
+/// Inside flow content (e.g. a div) the in-body rules apply instead and
+/// stray table-structural start tags are ignored.
+fn Parser::template_content_at_structural_position(self : Parser) -> Bool {
+  if self.template_content_mode() == "body" {
+    return false
+  }
+  let current = self.current_node()
+  if current.kind == Element &&
+    current.name == "template" &&
+    (current.ns is None || current.ns is Some("html")) {
+    return true
+  }
+  // Any open table-structure element above the template keeps the
+  // machinery active, even with a foster-parented flow element on top.
+  let template_index = self.last_open_template_index()
+  let mut index = self.stack.length()
+  while index > template_index + 1 && template_index >= 0 {
+    index -= 1
+    let node = self.stack[index]
+    if node.kind == Element && (node.ns is None || node.ns is Some("html")) {
+      match node.name {
+        "tr"
+        | "tbody"
+        | "tfoot"
+        | "thead"
+        | "caption"
+        | "colgroup"
+        | "td"
+        | "th" => return true
+        _ => ()
+      }
+    }
+  }
+  false
+}
+
+///|
+/// Flow content inserted directly at the template content top switches
+/// the template's mode to in-body: later table-structural start tags are
+/// then ignored per the in-body rules instead of synthesizing structure.
+/// The in-head elements (template, script, style) leave the mode alone.
+fn Parser::record_template_content_flow_insert(
+  self : Parser,
+  name : StringView,
+) -> Unit {
+  if name == "template" ||
+    name == "script" ||
+    name == "style" ||
+    name == "base" ||
+    name == "basefont" ||
+    name == "bgsound" ||
+    name == "link" ||
+    name == "meta" ||
+    name == "noframes" ||
+    name == "title" ||
+    name == "col" ||
+    name == "colgroup" ||
+    name == "caption" ||
+    name == "tbody" ||
+    name == "tfoot" ||
+    name == "thead" ||
+    name == "tr" ||
+    name == "td" ||
+    name == "th" {
+    return
+  }
+  // Only content-top insertions (current node is the template itself)
+  // can flip the mode, and this runs for every element insertion: the
+  // cheap current-node test goes before any stack walk.
+  let current = self.current_node()
+  if !(current
+    is { kind: Element, name: "template", ns: None | Some("html"), .. }) {
+    return
+  }
+  if !self.in_template_content_without_inner_table() {
+    return
+  }
+  if self.template_content_mode() != "" {
+    // Only the initial in-template mode flips to in-body; established
+    // table modes (row, table-body, table) persist through flow content.
+    return
+  }
+  self.set_template_content_mode("body")
+}

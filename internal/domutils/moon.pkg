@@ -1,12 +1,12 @@
 import {
-  "bobzhang/html_parser/dom",
+  "hustcer/html2md/dom",
   "hustcer/html2md/internal/domext",
   "hustcer/html2md/internal/textutils",
 }
 
 import {
-  "bobzhang/html_parser/parser",
-  "bobzhang/html_parser/dom",
+  "hustcer/html2md/internal/html_parser/parser",
+  "hustcer/html2md/dom",
   "hustcer/html2md/internal/domext",
   "moonbitlang/core/bench",
 } for "test"

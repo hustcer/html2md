@@ -31,11 +31,8 @@ pub fn convert(
   link_empty_content_behavior~ : LinkBehavior = Render,
   list_end_comment~ : Bool = true,
 ) -> String raise ConvertError {
-  let doc = @parser.parse(html, sanitize=false) catch {
-    err => raise ParseFailed("\{Repr(err)}")
-  }
   convert_dom(
-    doc.root,
+    parse_dom(html),
     domain~,
     heading_style~,
     em_delimiter~,
@@ -51,8 +48,26 @@ pub fn convert(
 }
 
 ///|
-/// Convert an already parsed DOM tree (from `bobzhang/html_parser`) to
-/// CommonMark Markdown.
+/// Parse an HTML string into a mutable document node for `convert_dom`.
+///
+/// The parser adds implied `html`, `head`, and `body` elements and applies
+/// HTML error recovery.
+///
+/// ```mbt check
+/// test {
+///   let doc = @html2md.parse_dom("<p>Hello <em>MoonBit</em></p>")
+///   inspect(@html2md.convert_dom(doc), content="Hello *MoonBit*")
+/// }
+/// ```
+pub fn parse_dom(html : StringView) -> @dom.Node raise ConvertError {
+  let parsed = @parser.parse(html) catch {
+    err => raise ParseFailed("\{Repr(err)}")
+  }
+  parsed.root
+}
+
+///|
+/// Convert a node from `hustcer/html2md/dom` to CommonMark Markdown.
 ///
 /// Note: the tree is normalized **in place** during conversion (nodes may be
 /// removed, merged or renamed). Pass a `clone_node(deep=true)` copy if the

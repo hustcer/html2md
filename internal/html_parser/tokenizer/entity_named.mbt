@@ -1,0 +1,151 @@
+///|
+fn entity_without_semicolon_error(
+  input : StringView,
+  start : Int32,
+) -> EntityDecodeError {
+  {
+    code: "missing-semicolon-after-character-reference",
+    offset: named_entity_missing_semicolon_error_offset(input, start),
+  }
+}
+
+///|
+fn named_entity_missing_semicolon_error_offset(
+  input : StringView,
+  start : Int32,
+) -> Int32 {
+  let mut pos = start + 1
+  let mut last = start
+  while pos < input.length() {
+    match input.get_char(pos) {
+      Some(ch) if ch.is_ascii_alphabetic() || ch.is_ascii_digit() => {
+        last = pos
+        pos += ch.utf16_len()
+      }
+      Some(';') => return pos
+      _ => return last
+    }
+  }
+  last
+}
+
+///|
+fn named_entity_name_end(input : StringView, start : Int32) -> Int32 {
+  let mut pos = start + 1
+  while pos < input.length() {
+    match input.get_char(pos) {
+      Some(ch) if ch.is_ascii_alphabetic() || ch.is_ascii_digit() =>
+        pos += ch.utf16_len()
+      _ => break
+    }
+  }
+  pos
+}
+
+///|
+fn longest_legacy_named_entity(
+  input : StringView,
+  name_start : Int32,
+  name_end : Int32,
+) -> (String, Int32)? {
+  // No legacy name exceeds six ASCII characters. Longer suffixes cannot
+  // match, so skip them rather than retrying every prefix of an unknown name.
+  let max_end = name_start + 6
+  let mut end = if name_end < max_end { name_end } else { max_end }
+  while end > name_start {
+    let name = input[name_start:end]
+    match legacy_named_entity_value(name) {
+      Some(value) => return Some((value, end))
+      None => ()
+    }
+    end -= 1
+  }
+  None
+}
+
+///|
+/// Consume a named character reference beginning at `start`.
+///
+/// `start` must point at the `&`. Returns `None` when the following text is not
+/// a recognized named reference. The returned `next` offset points just after
+/// the consumed reference, and `errors` records missing-semicolon diagnostics
+/// for legacy matches. Attribute context blocks legacy references followed by
+/// an ASCII alphanumeric character or `=`.
+pub fn consume_named_entity_with_errors(
+  input : StringView,
+  start : Int32,
+  in_attribute~ : Bool,
+) -> EntityConsumeResult? {
+  let name_start = start + 1
+  let name_end = named_entity_name_end(input, start)
+  if name_end == name_start {
+    return None
+  }
+  let has_semicolon = input.get_char(name_end) is Some(';')
+  let name = input[name_start:name_end]
+  if has_semicolon {
+    match semicolon_named_entity_value(name) {
+      Some(value) => return Some({ value, next: name_end + 1, errors: [], })
+      None => ()
+    }
+    if !in_attribute {
+      match longest_legacy_named_entity(input, name_start, name_end) {
+        Some((value, next)) =>
+          return Some({
+            value,
+            next,
+            errors: [entity_without_semicolon_error(input, start)],
+          })
+        None => ()
+      }
+    }
+    None
+  } else {
+    match legacy_named_entity_value(name) {
+      Some(value) =>
+        if legacy_entity_blocked_in_attribute(input, name_end, in_attribute~) {
+          return None
+        } else {
+          return Some({
+            value,
+            next: name_end,
+            errors: [entity_without_semicolon_error(input, start)],
+          })
+        }
+      None => ()
+    }
+    if in_attribute {
+      return None
+    }
+    match longest_legacy_named_entity(input, name_start, name_end) {
+      Some((value, next)) =>
+        Some({
+          value,
+          next,
+          errors: [entity_without_semicolon_error(input, start)],
+        })
+      None => None
+    }
+  }
+}
+
+///|
+/// Return whether a legacy named reference is blocked in attribute context.
+///
+/// HTML keeps `&copyx` and `&copy=` literal in attributes instead of decoding
+/// the legacy `&copy` reference. `next` is the offset immediately after the
+/// legacy entity name that would otherwise be consumed.
+pub fn legacy_entity_blocked_in_attribute(
+  input : StringView,
+  next : Int32,
+  in_attribute~ : Bool,
+) -> Bool {
+  if !in_attribute {
+    return false
+  }
+  match input.get_char(next) {
+    Some(ch) if ch.is_ascii_alphabetic() || ch.is_ascii_digit() => true
+    Some('=') => true
+    _ => false
+  }
+}

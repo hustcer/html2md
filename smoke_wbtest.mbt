@@ -1,8 +1,7 @@
 ///|
-/// Smoke test: the html_parser dependency parses and exposes a usable DOM.
-test "dependency smoke: parse html" {
-  let doc = @parser.parse("<p>hello <b>world</b></p>", sanitize=false)
-  let root = doc.root
+/// Smoke test for the embedded parser's document root.
+test "parser smoke: parse html" {
+  let root = parse_dom("<p>hello <b>world</b></p>")
   assert_true(root.kind is Document)
   // html5 semantics: html/head/body are implied
   inspect(root.children[0].name, content="html")
@@ -10,13 +9,10 @@ test "dependency smoke: parse html" {
 
 ///|
 /// Baseline for later phases: how the parser structures a typical document.
-test "dependency smoke: dom shape" {
-  let doc = @parser.parse(
-    "<h1>Title</h1><p>a <strong>b</strong></p><!--note-->",
-    sanitize=false,
-  )
+test "parser smoke: dom shape" {
+  let doc = parse_dom("<h1>Title</h1><p>a <strong>b</strong></p><!--note-->")
   inspect(
-    @domext.dump(doc.root),
+    @domext.dump(doc),
     content=(
       #|#document
       #|  html

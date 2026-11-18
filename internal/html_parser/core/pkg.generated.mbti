@@ -1,0 +1,45 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hustcer/html2md/internal/html_parser/core"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn parser_error_category(StringView) -> String
+
+// Errors
+#derive(Eq, @debug.Debug)
+pub(all) suberror HtmlError {
+  StrictMode(ParseError)
+  InvalidSerialization(String)
+  UnsafeHtml(String)
+  SelectorError(String)
+}
+#deprecated
+pub fn HtmlError::equal(Self, Self) -> Bool
+#deprecated
+pub fn HtmlError::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn HtmlError::to_repr(Self) -> @debug.Repr
+
+// Types and methods
+#derive(Eq, @debug.Debug)
+pub(all) struct ParseError {
+  code : String
+  line : Int32?
+  column : Int32?
+  category : String
+  message : String
+}
+pub fn ParseError::ParseError(String, line? : Int32, column? : Int32, category? : String, message? : String) -> Self
+#deprecated
+pub fn ParseError::equal(Self, Self) -> Bool
+#deprecated
+pub fn ParseError::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn ParseError::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

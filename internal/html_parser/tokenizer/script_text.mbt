@@ -1,0 +1,245 @@
+///|
+/// Scan `<script>` raw text using HTML script-data state transitions.
+///
+/// `start` is the UTF-16 offset where script data begins. The scanner preserves
+/// script text up to a matching `</script` end tag, handles escaped and
+/// double-escaped script states, normalizes CRLF and bare CR to LF, and replaces
+/// null characters with U+FFFD while collecting diagnostics. `end_start` points
+/// at the `<` of the matching end tag when one is found.
+pub fn scan_script_text(input : StringView, start : Int32) -> ScriptTextScan {
+  let errors : Array[SpecialTextError] = []
+  // Fast path: script text without a `<!--` escape opener is the input
+  // verbatim, so this loop only locates the end tag and the data
+  // materializes as one slice copy. The escaped states decide where the
+  // script ends differently, so they keep the writing machine.
+  let mut pos = start
+  while pos < input.length() {
+    if script_end_tag_at(input, pos) {
+      return {
+        data: scanned_data_slice(input, start, pos),
+        end_start: Some(pos),
+        errors,
+      }
+    }
+    if @syn.view_starts_with_at(input, pos, "<!--") {
+      return scan_escaped_script_text(input, start, pos, errors)
+    }
+    pos = skip_script_text_char(input, pos, errors)
+  }
+  { data: scanned_data_slice(input, start, pos), end_start: None, errors, }
+}
+
+///|
+/// Continue a script-text scan that hit a `<!--` opener at `escape_start`,
+/// building the data explicitly through the escaped-state machine. The
+/// builder is seeded with the (already diagnosed) verbatim prefix and grows
+/// as needed instead of preallocating the rest of the document.
+fn scan_escaped_script_text(
+  input : StringView,
+  start : Int32,
+  escape_start : Int32,
+  errors : Array[SpecialTextError],
+) -> ScriptTextScan {
+  let out = StringBuilder()
+  out.write_string(scanned_data_slice(input, start, escape_start))
+  out.write_string("<!--")
+  // `<!--` passes through the escape start and escape start dash states and
+  // lands in escaped *dash dash*, so an immediate `>` (as in `<!-->`) returns
+  // to plain script data rather than staying escaped.
+  let mut state = ScriptEscapedDashDash
+  let mut temp = ""
+  let mut pos = escape_start + 4
+  while pos < input.length() {
+    match state {
+      ScriptRawText =>
+        if script_end_tag_at(input, pos) {
+          return { data: out.to_string(), end_start: Some(pos), errors, }
+        } else if @syn.view_starts_with_at(input, pos, "<!--") {
+          out.write_string("<!--")
+          pos += 4
+          state = ScriptEscapedDashDash
+        } else {
+          pos = write_script_text_char(input, pos, out, errors)
+        }
+      ScriptEscaped =>
+        match input.get_char(pos).unwrap() {
+          '-' => {
+            out.write_char('-')
+            pos += 1
+            state = ScriptEscapedDash
+          }
+          '<' => {
+            pos += 1
+            state = ScriptEscapedLessThan
+          }
+          _ => pos = write_script_text_char(input, pos, out, errors)
+        }
+      ScriptEscapedDash =>
+        match input.get_char(pos).unwrap() {
+          '-' => {
+            out.write_char('-')
+            pos += 1
+            state = ScriptEscapedDashDash
+          }
+          '<' => {
+            pos += 1
+            state = ScriptEscapedLessThan
+          }
+          _ => {
+            pos = write_script_text_char(input, pos, out, errors)
+            state = ScriptEscaped
+          }
+        }
+      ScriptEscapedDashDash =>
+        match input.get_char(pos).unwrap() {
+          '-' => {
+            out.write_char('-')
+            pos += 1
+          }
+          '<' => {
+            // The `<` is emitted by the less-than sign state once it knows
+            // what follows; emitting it here as well doubled it.
+            pos += 1
+            state = ScriptEscapedLessThan
+          }
+          '>' => {
+            out.write_char('>')
+            pos += 1
+            state = ScriptRawText
+          }
+          _ => {
+            pos = write_script_text_char(input, pos, out, errors)
+            state = ScriptEscaped
+          }
+        }
+      ScriptEscapedLessThan =>
+        match input.get_char(pos) {
+          Some('/') =>
+            if script_end_tag_at(input, pos - 1) {
+              return {
+                data: out.to_string(),
+                end_start: Some(pos - 1),
+                errors,
+              }
+            } else {
+              out.write_string("</")
+              pos += 1
+              state = ScriptEscaped
+            }
+          Some(ch) if ch.is_ascii_alphabetic() => {
+            out.write_char('<')
+            temp = ""
+            state = ScriptDoubleEscapeStart
+          }
+          _ => {
+            out.write_char('<')
+            state = ScriptEscaped
+          }
+        }
+      ScriptDoubleEscapeStart =>
+        match input.get_char(pos) {
+          Some(ch) if script_escape_boundary(ch) => {
+            if temp_is_script(temp) {
+              state = ScriptDoubleEscaped
+            } else {
+              state = ScriptEscaped
+            }
+            pos = @syn.write_normalized_char(input, pos, out)
+          }
+          Some(ch) if ch.is_ascii_alphabetic() => {
+            temp = temp + ch.to_string()
+            out.write_char(ch)
+            pos += ch.utf16_len()
+          }
+          _ => state = ScriptEscaped
+        }
+      ScriptDoubleEscaped =>
+        match input.get_char(pos).unwrap() {
+          '-' => {
+            out.write_char('-')
+            pos += 1
+            state = ScriptDoubleEscapedDash
+          }
+          '<' => {
+            out.write_char('<')
+            pos += 1
+            state = ScriptDoubleEscapedLessThan
+          }
+          _ => pos = write_script_text_char(input, pos, out, errors)
+        }
+      ScriptDoubleEscapedDash =>
+        match input.get_char(pos).unwrap() {
+          '-' => {
+            out.write_char('-')
+            pos += 1
+            state = ScriptDoubleEscapedDashDash
+          }
+          '<' => {
+            out.write_char('<')
+            pos += 1
+            state = ScriptDoubleEscapedLessThan
+          }
+          _ => {
+            pos = write_script_text_char(input, pos, out, errors)
+            state = ScriptDoubleEscaped
+          }
+        }
+      ScriptDoubleEscapedDashDash =>
+        match input.get_char(pos).unwrap() {
+          '-' => {
+            out.write_char('-')
+            pos += 1
+          }
+          '<' => {
+            out.write_char('<')
+            pos += 1
+            state = ScriptDoubleEscapedLessThan
+          }
+          '>' => {
+            out.write_char('>')
+            pos += 1
+            state = ScriptRawText
+          }
+          _ => {
+            pos = write_script_text_char(input, pos, out, errors)
+            state = ScriptDoubleEscaped
+          }
+        }
+      ScriptDoubleEscapedLessThan =>
+        match input.get_char(pos) {
+          Some('/') => {
+            out.write_char('/')
+            pos += 1
+            temp = ""
+            state = ScriptDoubleEscapeEnd
+          }
+          // Anything else, letters included, is reconsumed as double-escaped
+          // data. Only the escaped (not double-escaped) less-than sign state
+          // starts a double escape; starting one here could fall back to the
+          // escaped state and let a later `</script>` end the script early.
+          _ => state = ScriptDoubleEscaped
+        }
+      ScriptDoubleEscapeEnd =>
+        match input.get_char(pos) {
+          Some(ch) if script_escape_boundary(ch) => {
+            if temp_is_script(temp) {
+              state = ScriptEscaped
+            } else {
+              state = ScriptDoubleEscaped
+            }
+            pos = @syn.write_normalized_char(input, pos, out)
+          }
+          Some(ch) if ch.is_ascii_alphabetic() => {
+            temp = temp + ch.to_string()
+            out.write_char(ch)
+            pos += ch.utf16_len()
+          }
+          _ => state = ScriptDoubleEscaped
+        }
+    }
+  }
+  if state is ScriptEscapedLessThan {
+    out.write_char('<')
+  }
+  { data: out.to_string(), end_start: None, errors, }
+}

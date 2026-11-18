@@ -2,7 +2,7 @@
 package "hustcer/html2md"
 
 import {
-  "bobzhang/html_parser/dom",
+  "hustcer/html2md/dom",
   "moonbitlang/core/debug",
 }
 
@@ -10,6 +10,8 @@ import {
 pub fn convert(String, domain? : String, heading_style? : HeadingStyle, em_delimiter? : String, strong_delimiter? : String, horizontal_rule? : String, bullet_list_marker? : String, code_block_fence? : String, escape_mode? : EscapeMode, link_empty_href_behavior? : LinkBehavior, link_empty_content_behavior? : LinkBehavior, list_end_comment? : Bool) -> String raise ConvertError
 
 pub fn convert_dom(@dom.Node, domain? : String, heading_style? : HeadingStyle, em_delimiter? : String, strong_delimiter? : String, horizontal_rule? : String, bullet_list_marker? : String, code_block_fence? : String, escape_mode? : EscapeMode, link_empty_href_behavior? : LinkBehavior, link_empty_content_behavior? : LinkBehavior, list_end_comment? : Bool) -> String raise ConvertError
+
+pub fn parse_dom(StringView) -> @dom.Node raise ConvertError
 
 // Errors
 #derive(@debug.Debug)

@@ -1,0 +1,41 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hustcer/html2md/internal/html_parser/parser"
+
+import {
+  "hustcer/html2md/dom",
+  "hustcer/html2md/internal/html_parser/core",
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn parse(StringView, collect_errors? : Bool, strict? : Bool, scripting_enabled? : Bool, xml_coercion? : Bool, track_node_locations? : Bool, iframe_srcdoc? : Bool) -> ParsedHtml raise @core.HtmlError
+
+pub fn parse_fragment(StringView, context? : FragmentContext, collect_errors? : Bool, strict? : Bool, scripting_enabled? : Bool, xml_coercion? : Bool, track_node_locations? : Bool, iframe_srcdoc? : Bool) -> ParsedHtml raise @core.HtmlError
+
+// Errors
+
+// Types and methods
+#derive(Eq, @debug.Debug)
+pub(all) struct FragmentContext {
+  tag_name : String
+  ns : String?
+}
+pub fn FragmentContext::FragmentContext(StringView, ns? : String) -> Self
+#deprecated
+pub fn FragmentContext::equal(Self, Self) -> Bool
+#deprecated
+pub fn FragmentContext::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn FragmentContext::to_repr(Self) -> @debug.Repr
+
+#derive(@debug.Debug)
+pub struct ParsedHtml {
+  root : @dom.Node
+  errors : Array[@core.ParseError]
+}
+#deprecated
+pub fn ParsedHtml::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

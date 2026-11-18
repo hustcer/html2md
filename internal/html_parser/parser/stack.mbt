@@ -1,0 +1,426 @@
+///|
+/// Stack mutations route through these wrappers so cheap open-element
+/// counters stay accurate; the hot index walks early-out on them.
+fn Parser::track_open_element(
+  self : Parser,
+  node : @dom.Node,
+  delta : Int32,
+) -> Unit {
+  if node.kind != Element {
+    return
+  }
+  let count = self.open_element_counts.get(node.name).unwrap_or(0) + delta
+  self.open_element_counts[node.name] = count
+  let len = node.name.length()
+  if len == 8 &&
+    node.name == "template" &&
+    (node.ns is None || node.ns is Some("html")) {
+    self.open_template_count += delta
+  } else if len == 5 && node.name == "table" {
+    self.open_table_count += delta
+  } else if len == 6 && node.name == "select" && node.ns is Some("html") {
+    // Mirrors the has_open_html_select predicate exactly: the count is
+    // used as the boolean answer, not just as an early-out.
+    self.open_select_count += delta
+  }
+}
+
+///|
+fn Parser::push_open_element(self : Parser, node : @dom.Node) -> Unit {
+  self.track_open_element(node, 1)
+  self.stack.push(node)
+}
+
+///|
+fn Parser::pop_open_element(self : Parser) -> @dom.Node? {
+  // Return the popped option as-is instead of rebuilding a new Some.
+  let popped = self.stack.pop()
+  if popped is Some(node) {
+    self.track_open_element(node, -1)
+  }
+  popped
+}
+
+///|
+fn Parser::remove_open_element_at(self : Parser, index : Int32) -> @dom.Node {
+  let node = self.stack.remove(index)
+  self.track_open_element(node, -1)
+  node
+}
+
+///|
+fn Parser::insert_open_element_at(
+  self : Parser,
+  index : Int32,
+  node : @dom.Node,
+) -> Unit {
+  self.track_open_element(node, 1)
+  self.stack.insert(index, node)
+}
+
+///|
+fn Parser::replace_open_element_at(
+  self : Parser,
+  index : Int32,
+  node : @dom.Node,
+) -> Unit {
+  self.track_open_element(self.stack[index], -1)
+  self.track_open_element(node, 1)
+  self.stack[index] = node
+}
+
+///|
+fn Parser::clear_open_elements(self : Parser) -> Unit {
+  self.stack.clear()
+  self.open_template_count = 0
+  self.open_table_count = 0
+  self.open_select_count = 0
+  self.open_element_counts.clear()
+}
+
+///|
+fn Parser::pop_until(
+  self : Parser,
+  name : String,
+  pos : Int32,
+  source_end_tag? : String,
+) -> Unit {
+  if !self.end_tag_target_visible_for_pop(name) {
+    self.error_at("unexpected-end-tag", pos)
+    return
+  }
+  if (!is_special_element_name(name) || special_name_without_end_tag_rule(name)) &&
+    !active_formatting_element_name(name) &&
+    self.special_blocks_end_tag(name) {
+    // Names with dedicated end-tag rules (div, ul, ...) close through
+    // their scope, and formatting end tags use the adoption agency
+    // rules; only the any-other-end-tag walk stops at a special element.
+    // Special elements without a dedicated end-tag rule (menuitem,
+    // iframe, the voids) also take the any-other-end-tag walk.
+    self.error_at("unexpected-end-tag", pos)
+    return
+  }
+  while self.stack.length() > 1 {
+    match self.stack.last() {
+      Some(node) if node.kind == Element &&
+        node.name != name &&
+        is_implied_end_tag_name(node.name) => ignore(self.pop_open_element())
+      _ => break
+    }
+  }
+  match self.stack.last() {
+    Some(node) if node.kind == Element && names_match_end_tag(node, name) => ()
+    _ => self.error_at("end-tag-too-early", pos)
+  }
+  while self.stack.length() > 1 {
+    let node = self.pop_open_element().unwrap()
+    if node.kind == Element && names_match_end_tag(node, name) {
+      if source_end_tag is Some(raw) {
+        set_node_source_end_tag(node, raw)
+      }
+      break
+    }
+  }
+}
+
+///|
+fn is_implied_end_tag_name(name : StringView) -> Bool {
+  match name {
+    "dd"
+    | "dt"
+    | "li"
+    | "option"
+    | "optgroup"
+    | "p"
+    | "rb"
+    | "rp"
+    | "rt"
+    | "rtc" => true
+    _ => false
+  }
+}
+
+///|
+fn Parser::generate_implied_end_tags(self : Parser, exclude : String?) -> Unit {
+  while self.stack.length() > 1 {
+    match self.stack.last() {
+      Some(node) if node.kind == Element &&
+        is_implied_end_tag_name(node.name) &&
+        !(exclude is Some(excluded) && node.name == excluded) =>
+        ignore(self.pop_open_element())
+      _ => break
+    }
+  }
+}
+
+///|
+
+///|
+/// True when an element with this name is on the stack above the nearest
+/// open HTML template. Template contents are a separate tree: end tags
+/// inside a template must not see (or close) elements outside it.
+fn Parser::end_tag_target_visible(self : Parser, name : String) -> Bool {
+  let mut index = self.stack.length()
+  while index > 0 {
+    index -= 1
+    let node = self.stack[index]
+    if node.kind == Element && node.name == name {
+      return true
+    }
+    if name != "template" &&
+      node.kind == Element &&
+      node.name == "template" &&
+      (node.ns is None || node.ns is Some("html")) {
+      return false
+    }
+  }
+  false
+}
+
+///|
+/// The spec's "special" element category (HTML namespace), used by the
+/// any-other-end-tag rule: walking the open-elements stack, a special
+/// element encountered before the target means the end tag is ignored.
+let special_element_names : ReadOnlyArray[String] = [
+  "address", "applet", "area", "article", "aside", "base", "basefont", "bgsound",
+  "blockquote", "body", "br", "button", "caption", "center", "col", "colgroup", "dd",
+  "details", "dialog", "dir", "div", "dl", "dt", "embed", "fieldset", "figcaption",
+  "figure", "footer", "form", "frame", "frameset", "h1", "h2", "h3", "h4", "h5",
+  "h6", "head", "header", "hgroup", "hr", "html", "iframe", "img", "input", "keygen",
+  "li", "link", "listing", "main", "marquee", "menu", "menuitem", "meta", "nav",
+  "noembed", "noframes", "noscript", "object", "ol", "p", "param", "plaintext", "pre",
+  "script", "search", "section", "select", "source", "style", "summary", "table",
+  "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "title", "tr", "track",
+  "ul", "wbr",
+]
+
+///|
+fn is_special_element_name(name : StringView) -> Bool {
+  let mut low = 0
+  let mut high = special_element_names.length()
+  while low < high {
+    let mid = low + (high - low) / 2
+    let order = name.lexical_compare(special_element_names[mid][:])
+    if order < 0 {
+      high = mid
+    } else if order > 0 {
+      low = mid + 1
+    } else {
+      return true
+    }
+  }
+  false
+}
+
+///|
+fn Parser::close_open_element(self : Parser, name : String) -> Bool {
+  if !self.end_tag_target_visible(name) {
+    return false
+  }
+  while self.stack.length() > 1 {
+    let node = self.pop_open_element().unwrap()
+    if node.kind == Element && node.name == name {
+      break
+    }
+  }
+  true
+}
+
+///|
+fn Parser::pop_current_element_if_name(self : Parser, name : String) -> Bool {
+  match self.stack.last() {
+    Some(node) if node.kind == Element && node.name == name => {
+      ignore(self.pop_open_element())
+      true
+    }
+    _ => false
+  }
+}
+
+///|
+fn Parser::close_current_element_if_name(self : Parser, name : String) -> Unit {
+  ignore(self.pop_current_element_if_name(name))
+}
+
+///|
+fn Parser::last_stack_index_of(self : Parser, name : String) -> Int32 {
+  let mut index = self.stack.length()
+  while index > 0 {
+    index -= 1
+    let node = self.stack[index]
+    if node.kind == Element && node.name == name {
+      return index
+    }
+  }
+  -1
+}
+
+///|
+fn Parser::last_stack_index_of_node(self : Parser, target : @dom.Node) -> Int32 {
+  let mut index = self.stack.length()
+  while index > 0 {
+    index -= 1
+    if physical_equal(self.stack[index], target) {
+      return index
+    }
+  }
+  -1
+}
+
+///|
+fn Parser::open_html_element(self : Parser) -> @dom.Node? {
+  for node in self.stack {
+    if node.kind == Element && node.name == "html" {
+      return Some(node)
+    }
+  }
+  document_html_element(self.root)
+}
+
+///|
+fn Parser::stack_contains_node(self : Parser, target : @dom.Node) -> Bool {
+  self.stack[:].any(node => physical_equal(node, target))
+}
+
+///|
+fn Parser::remove_open_node(self : Parser, target : @dom.Node) -> Bool {
+  let mut index = 0
+  while index < self.stack.length() {
+    if physical_equal(self.stack[index], target) {
+      ignore(self.remove_open_element_at(index))
+      return true
+    }
+    index += 1
+  }
+  false
+}
+
+///|
+fn Parser::insert_element_without_push(
+  self : Parser,
+  name : StringView,
+  attrs : Map[String, String?],
+  start? : Int32,
+) -> Unit {
+  let node = match start {
+    Some(offset) => self.node_with_origin(@dom.element(name, attrs~), offset)
+    None => @dom.element(name, attrs~)
+  }
+  append_new_node(self.current_node(), node)
+}
+
+///|
+fn Parser::insert_element_maybe_push(
+  self : Parser,
+  name : StringView,
+  attrs : Map[String, String?],
+  push : Bool,
+  start? : Int32,
+) -> Unit {
+  let node = match start {
+    Some(offset) => self.node_with_origin(@dom.element(name, attrs~), offset)
+    None => @dom.element(name, attrs~)
+  }
+  append_new_node(self.current_node(), node)
+  if push {
+    self.push_open_element(node)
+  }
+}
+
+///|
+/// Like end_tag_target_visible, but matches the same name rules as
+/// pop_until (names_match_end_tag).
+fn Parser::end_tag_target_visible_for_pop(self : Parser, name : String) -> Bool {
+  let mut index = self.stack.length()
+  while index > 0 {
+    index -= 1
+    let node = self.stack[index]
+    if node.kind == Element && names_match_end_tag(node, name) {
+      return true
+    }
+    // The dedicated block end tags only close an element in (default)
+    // scope: applet-like elements, table cells, templates, and the
+    // foreign integration points terminate the search, so e.g. </div>
+    // cannot pop through an open <marquee> or <foreignObject>. The
+    // table-structural machinery performs its own table-scope walk.
+    if name != node.name &&
+      node.kind == Element &&
+      (node.ns is None || node.ns is Some("html")) &&
+      is_default_scope_terminator(node.name) {
+      return false
+    }
+    if node.kind == Element && is_foreign_special_element(node) {
+      return false
+    }
+  }
+  false
+}
+
+///|
+/// Implements the stack walk of the spec's any-other-end-tag rule: when a
+/// special element sits above the matching element, the end tag is a parse
+/// error and the token is ignored.
+fn Parser::special_blocks_end_tag(self : Parser, name : String) -> Bool {
+  let mut index = self.stack.length()
+  while index > 0 {
+    index -= 1
+    let node = self.stack[index]
+    if node.kind != Element {
+      continue
+    }
+    if names_match_end_tag(node, name) {
+      return false
+    }
+    if (node.ns is None || node.ns is Some("html")) &&
+      is_special_element_name(node.name) {
+      return true
+    }
+    if is_foreign_special_element(node) {
+      return true
+    }
+  }
+  false
+}
+
+///|
+/// The spec's special category also covers the foreign integration
+/// points: MathML text containers and the SVG elements whose content is
+/// HTML.
+fn is_foreign_special_element(node : @dom.Node) -> Bool {
+  match node.ns {
+    Some("svg") =>
+      node.name == "foreignObject" ||
+      node.name == "desc" ||
+      node.name == "title"
+    Some("math") | Some("mathml") =>
+      match node.name {
+        "mi" | "mo" | "mn" | "ms" | "mtext" | "annotation-xml" => true
+        _ => false
+      }
+    _ => false
+  }
+}
+
+///|
+/// Special elements whose end tags have no dedicated in-body rule: they
+/// process as any-other-end-tag, so the walk stops at special elements.
+fn special_name_without_end_tag_rule(name : StringView) -> Bool {
+  match name {
+    "menuitem"
+    | "iframe"
+    | "noembed"
+    | "embed"
+    | "area"
+    | "img"
+    | "input"
+    | "hr"
+    | "wbr"
+    | "param"
+    | "source"
+    | "track"
+    | "keygen"
+    | "basefont"
+    | "bgsound" => true
+    _ => false
+  }
+}

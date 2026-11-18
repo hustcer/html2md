@@ -105,6 +105,18 @@ test "convert: doc examples" {
 ///|
 /// convert_dom mirrors ConvertNode: feed an already-parsed tree.
 test "convert_dom: from a parsed node" {
-  let doc = @parser.parse("<strong>Bold Text</strong>", sanitize=false)
-  inspect(@html2md.convert_dom(doc.root), content="**Bold Text**")
+  let doc = @html2md.parse_dom("<strong>Bold Text</strong>")
+  inspect(@html2md.convert_dom(doc), content="**Bold Text**")
+}
+
+///|
+test "convert_dom: public DOM nodes are normalized in place" {
+  let script = @dom.element("script", children=[@dom.text("hidden")])
+  let node = @dom.element("p", children=[script, @dom.text("visible")])
+  let copy = node.clone_node(deep=true)
+  assert_eq(@html2md.convert_dom(copy), "visible")
+  assert_eq(node.children.length(), 2)
+  assert_eq(@html2md.convert_dom(node), "visible")
+  assert_eq(node.children.length(), 1)
+  assert_true(script.parent is None)
 }

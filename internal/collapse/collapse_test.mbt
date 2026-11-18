@@ -1,6 +1,6 @@
 ///|
 fn run(html : String) -> String raise {
-  let doc = @parser.parse(html, sanitize=false)
+  let doc = @parser.parse(html)
   @collapse.collapse(doc.root)
   @domext.dump(doc.root)
 }

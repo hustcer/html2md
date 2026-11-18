@@ -1,0 +1,27 @@
+// Whitebox regressions for defensive parser no-op branches.
+
+///|
+test "parser private defensive branches keep no-op behavior" {
+  let template_parser = Parser(
+    "",
+    @dom.fragment(),
+    scripting_enabled=true,
+    xml_coercion=false,
+  )
+  let template = @dom.element("template")
+  template_parser.push_open_element(template)
+  assert_true(template_parser.handle_template_end_tag("template", 0))
+  assert_true(template.source_end_tag is None)
+  assert_eq(template_parser.stack.length(), 1)
+
+  let attr_parser = Parser(
+    ">",
+    @dom.fragment(),
+    scripting_enabled=true,
+    xml_coercion=false,
+  )
+  let attrs : Map[String, String?] = Map([])
+  attr_parser.parse_attribute(attrs)
+  assert_eq(attr_parser.pos, 1)
+  assert_eq(attrs.length(), 0)
+}

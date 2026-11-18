@@ -2,7 +2,7 @@
 package "hustcer/html2md/internal/domutils"
 
 import {
-  "bobzhang/html_parser/dom",
+  "hustcer/html2md/dom",
 }
 
 // Values

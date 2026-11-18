@@ -1,0 +1,86 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hustcer/html2md/dom"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn comment(StringView) -> Node
+
+pub fn doctype(name? : String, public_id? : String, system_id? : String, force_quirks? : Bool) -> Node
+
+pub fn document(children? : Array[Node]) -> Node
+
+pub fn element(StringView, attrs? : Map[String, String?], children? : Array[Node], ns? : String) -> Node
+
+pub fn fragment(children? : Array[Node]) -> Node
+
+pub fn text(StringView) -> Node
+
+// Errors
+
+// Types and methods
+#derive(@debug.Debug)
+pub(all) struct Node {
+  kind : NodeKind
+  name : String
+  ns : String?
+  attrs : Map[String, String?]
+  data : String
+  public_id : String?
+  system_id : String?
+  force_quirks : Bool
+  mut parsed_from_source : Bool
+  mut source_start_tag : String?
+  mut source_end_tag : String?
+  mut sanitize_escape_only : Bool
+  mut origin_offset : Int32?
+  mut origin_line : Int32?
+  mut origin_col : Int32?
+  mut parent : Node?
+  children : Array[Node]
+  mut template_contents : Node?
+}
+pub fn Node::append_child(Self, Self) -> Unit
+pub fn Node::attrs(Self) -> Map[String, String?]
+pub fn Node::children(Self) -> Array[Self]
+pub fn Node::clone_node(Self, deep? : Bool, override_attrs? : Map[String, String?]) -> Self
+pub fn Node::data(Self) -> String
+pub fn Node::flatten_template_contents(Self) -> Unit
+pub fn Node::has_child_nodes(Self) -> Bool
+pub fn Node::insert_before(Self, Self, Self?) -> Unit
+pub fn Node::kind(Self) -> NodeKind
+pub fn Node::name(Self) -> String
+pub fn Node::namespace_uri(Self) -> String?
+pub fn Node::origin_col(Self) -> Int32?
+pub fn Node::origin_line(Self) -> Int32?
+pub fn Node::origin_location(Self) -> (Int32, Int32)?
+pub fn Node::origin_offset(Self) -> Int32?
+pub fn Node::parent(Self) -> Self?
+pub fn Node::remove_child(Self, Self) -> Unit
+pub fn Node::replace_child(Self, Self, Self) -> Self?
+pub fn Node::template_content(Self) -> Self?
+pub fn Node::text(Self) -> String
+#deprecated
+pub fn Node::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) enum NodeKind {
+  Document
+  Fragment
+  Element
+  Text
+  Comment
+  Doctype
+}
+#deprecated
+pub fn NodeKind::equal(Self, Self) -> Bool
+#deprecated
+pub fn NodeKind::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn NodeKind::to_repr(Self) -> @debug.Repr
+
+// Type aliases
+
+// Traits

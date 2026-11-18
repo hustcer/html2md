@@ -2,7 +2,7 @@
 package "hustcer/html2md/internal/domext"
 
 import {
-  "bobzhang/html_parser/dom",
+  "hustcer/html2md/dom",
   "moonbitlang/core/debug",
 }
 

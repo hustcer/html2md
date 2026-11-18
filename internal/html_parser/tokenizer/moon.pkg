@@ -1,0 +1,4 @@
+import {
+  "hustcer/html2md/internal/html_parser/syntax" @syn,
+  "moonbitlang/core/encoding/utf8",
+}

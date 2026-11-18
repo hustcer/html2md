@@ -1,0 +1,124 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "hustcer/html2md/internal/html_parser/tokenizer"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn consume_named_entity_with_errors(StringView, Int32, in_attribute~ : Bool) -> EntityConsumeResult?
+
+pub fn decode_attribute_value_with_errors(StringView) -> EntityDecodeResult
+
+pub fn decode_entities(StringView, in_attribute~ : Bool) -> StringView
+
+pub fn decode_entities_with_errors(StringView, in_attribute~ : Bool) -> EntityDecodeResult
+
+pub fn doctype_eof_error_offset(StringView) -> Int32
+
+pub fn find_matching_end_tag(StringView, Int32, StringView) -> Int32?
+
+pub fn html_numeric_entity_replacement(Int32) -> Int32
+
+pub fn is_special_text_element(StringView) -> Bool
+
+pub fn is_tag_name_end(Char) -> Bool
+
+pub fn is_tag_name_start(Char) -> Bool
+
+pub fn legacy_entity_blocked_in_attribute(StringView, Int32, in_attribute~ : Bool) -> Bool
+
+pub fn matching_end_tag_error_pos(StringView, Int32) -> Int32
+
+pub fn normalize_doctype_value(StringView, Int32, Int32, Array[DoctypeExternalError]) -> String
+
+pub fn parse_doctype_external(StringView, Bool) -> DoctypeExternalParse
+
+pub fn parse_lower_name_value_replacing_nulls(StringView, Int32, Int32) -> (String, Array[DoctypeExternalError])
+
+pub fn parse_quoted_doctype_value_at(StringView, Int32, Array[DoctypeExternalError]) -> (String?, Int32, Bool)
+
+pub fn scan_comment_data(StringView, Int32) -> CommentScan
+
+pub fn scan_script_text(StringView, Int32) -> ScriptTextScan
+
+pub fn special_text_decodes_entities(StringView) -> Bool
+
+// Errors
+
+// Types and methods
+pub(all) struct CommentScan {
+  data : String
+  end : Int32
+  eof : Bool
+  errors : Array[CommentScanError]
+}
+
+pub(all) struct CommentScanError {
+  code : String
+  offset : Int32
+}
+
+pub(all) struct DoctypeExternalError {
+  code : String
+  offset : Int32
+}
+
+pub(all) struct DoctypeExternalParse {
+  public_id : String?
+  system_id : String?
+  errors : Array[DoctypeExternalError]
+  force_quirks : Bool
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) struct EntityConsumeResult {
+  value : String
+  next : Int32
+  errors : Array[EntityDecodeError]
+}
+#deprecated
+pub fn EntityConsumeResult::equal(Self, Self) -> Bool
+#deprecated
+pub fn EntityConsumeResult::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn EntityConsumeResult::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) struct EntityDecodeError {
+  code : String
+  offset : Int32
+}
+#deprecated
+pub fn EntityDecodeError::equal(Self, Self) -> Bool
+#deprecated
+pub fn EntityDecodeError::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn EntityDecodeError::to_repr(Self) -> @debug.Repr
+
+#derive(Eq, @debug.Debug)
+pub(all) struct EntityDecodeResult {
+  data : StringView
+  errors : Array[EntityDecodeError]
+}
+#deprecated
+pub fn EntityDecodeResult::equal(Self, Self) -> Bool
+#deprecated
+pub fn EntityDecodeResult::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn EntityDecodeResult::to_repr(Self) -> @debug.Repr
+
+pub(all) struct ScriptTextScan {
+  data : String
+  end_start : Int32?
+  errors : Array[SpecialTextError]
+}
+
+pub(all) struct SpecialTextError {
+  code : String
+  offset : Int32
+}
+
+// Type aliases
+
+// Traits

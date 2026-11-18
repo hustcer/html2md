@@ -51,7 +51,7 @@ pub extend LinkBehavior with Eq::{equal, not_equal}
 pub extend LinkBehavior with Debug::{to_repr}
 
 ///|
-/// Error raised by `convert` / `convert_dom`.
+/// Error raised by `convert`, `parse_dom`, or `convert_dom`.
 #derive(Debug)
 pub(all) suberror ConvertError {
   /// An option value is invalid (e.g. an unsupported delimiter).
