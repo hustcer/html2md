@@ -37,7 +37,7 @@ fn get_underline_width(content : String, min_val : Int32) -> Int32 {
 ///|
 /// Collapse runs of 2+ spaces to a single space (Go regex `  +`).
 fn collapse_multiple_spaces(content : String) -> String {
-  let out = StringBuilder(size_hint=content.length())
+  let out = StringBuilder(capacity=content.length())
   let mut spaces = 0
   for ch in content {
     if ch == ' ' {

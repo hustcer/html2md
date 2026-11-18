@@ -3,7 +3,7 @@
 /// only surround the removed newlines (port of
 /// `textutils.TrimConsecutiveNewlines`).
 pub fn trim_consecutive_newlines(input : String) -> String {
-  let result = StringBuilder(size_hint=input.length())
+  let result = StringBuilder(capacity=input.length())
   let space_buffer = StringBuilder()
   let mut newline_count = 0
   for ch in input {
@@ -74,7 +74,7 @@ pub fn trim_space(content : String) -> String {
 /// bold/italic markers survive multi-line content (port of
 /// `textutils.DelimiterForEveryLine`).
 pub fn delimiter_for_every_line(text : String, delimiter : String) -> String {
-  let out = StringBuilder(size_hint=text.length())
+  let out = StringBuilder(capacity=text.length())
   let lines = text.split("\n").collect()
   for i, line in lines {
     let (left, trimmed, right) = surrounding_spaces(line.to_owned())
@@ -105,7 +105,7 @@ pub fn escape_multiline(content : String) -> String {
   if lines.length() == 1 {
     return content
   }
-  let output = StringBuilder(size_hint=content.length())
+  let output = StringBuilder(capacity=content.length())
   for i, line in lines {
     let mut start = 0
     let line = line.to_owned()
@@ -142,7 +142,7 @@ pub fn escape_multiline(content : String) -> String {
 /// Prefix the first line and every line after a "\n" with `repl` (port of
 /// `textutils.PrefixLines`; note a trailing newline also gets the prefix).
 pub fn prefix_lines(source : String, repl : String) -> String {
-  let out = StringBuilder(size_hint=source.length())
+  let out = StringBuilder(capacity=source.length())
   out.write_string(repl)
   for ch in source {
     out.write_char(ch)
@@ -161,7 +161,7 @@ pub fn collapse_inline_code_content(content : String) -> String {
   let replaced = trim_space(
     content.replace_all(old="\n", new=" ").replace_all(old="\t", new=" "),
   )
-  let out = StringBuilder(size_hint=replaced.length())
+  let out = StringBuilder(capacity=replaced.length())
   let mut count = 0
   for ch in replaced {
     if ch == ' ' {

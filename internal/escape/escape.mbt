@@ -36,7 +36,7 @@ pub fn escape_content(content : String, enabled~ : Bool = true) -> String {
   if !enabled {
     return content
   }
-  let out = StringBuilder(size_hint=content.length())
+  let out = StringBuilder(capacity=content.length())
   for ch in content {
     if ch == '\u{0000}' {
       out.write_char('\u{FFFD}')

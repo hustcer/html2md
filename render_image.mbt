@@ -2,7 +2,7 @@
 /// HTML alt text is literal text. Escape inline Markdown syntax and entities
 /// so the rendered image description retains its original characters.
 fn escape_alt(alt : String) -> String {
-  let out = StringBuilder(size_hint=alt.length())
+  let out = StringBuilder(capacity=alt.length())
   for ch in alt {
     match ch {
       '\\' | '[' | ']' | '*' | '_' | '`' | '~' => {

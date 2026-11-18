@@ -305,7 +305,7 @@ fn render_table_cell(ctx : RenderCtx, node : @dom.Node) -> String {
 ///|
 fn escape_table_pipes(content : String) -> String {
   let chars = content.to_array()
-  let out = StringBuilder(size_hint=content.length())
+  let out = StringBuilder(capacity=content.length())
   let mut i = 0
   while i < chars.length() {
     if chars[i] == @escape.MARKER_ESCAPING &&

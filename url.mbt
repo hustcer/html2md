@@ -2,7 +2,7 @@
 /// Percent-encode the characters that would break markdown link/image syntax
 /// (port of `converter.percentEncodingReplacer`).
 fn percent_encode_url_chars(url : String) -> String {
-  let out = StringBuilder(size_hint=url.length())
+  let out = StringBuilder(capacity=url.length())
   for ch in url {
     match ch {
       ' ' => out.write_string("%20")
@@ -79,7 +79,7 @@ fn split_fragment_suffix(s : String) -> (String, String) {
 
 ///|
 fn percent_encode_query(query : String) -> String {
-  let out = StringBuilder(size_hint=query.length())
+  let out = StringBuilder(capacity=query.length())
   let mut i = 0
   while i < query.length() {
     match query.get_char(i) {

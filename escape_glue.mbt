@@ -12,7 +12,7 @@ const MARKER_LITERAL_PREFIX : Char = '\u{F000}'
 
 ///|
 fn protect_internal_marker_literals(content : String) -> String {
-  let out = StringBuilder(size_hint=content.length())
+  let out = StringBuilder(capacity=content.length())
   for ch in content {
     match ch {
       MARKER_LITERAL_PREFIX => {
@@ -36,7 +36,7 @@ fn protect_internal_marker_literals(content : String) -> String {
 ///|
 fn restore_internal_marker_literals(content : String) -> String {
   let chars = content.to_array()
-  let out = StringBuilder(size_hint=content.length())
+  let out = StringBuilder(capacity=content.length())
   let mut i = 0
   while i < chars.length() {
     if chars[i] == MARKER_LITERAL_PREFIX && i + 1 < chars.length() {

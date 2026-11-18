@@ -50,7 +50,7 @@ pub fn unescape_content(
     escape_at[index] = true
     index += skip // marker (1) + (skip-1) consumed chars
   }
-  let out = StringBuilder(size_hint=n)
+  let out = StringBuilder(capacity=n)
   for i in 0..<n {
     let ch = chars[i]
     if ch != MARKER_ESCAPING {

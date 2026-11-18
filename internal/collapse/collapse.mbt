@@ -2,7 +2,7 @@
 /// Collapse runs of HTML whitespace (space, \r, \n, \t) into a single space
 /// (port of `collapse.replaceAnyWhitespaceWithSpace`).
 fn replace_any_whitespace_with_space(source : String) -> String {
-  let out = StringBuilder(size_hint=source.length())
+  let out = StringBuilder(capacity=source.length())
   let mut in_run = false
   for ch in source {
     if ch is (' ' | '\r' | '\n' | '\t') {
