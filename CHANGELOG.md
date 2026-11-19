@@ -2,13 +2,39 @@
 
 Notable changes to `hustcer/html2md` are documented here.
 
-## Unreleased
+## 0.3.0 — 2026-11-19
 
-- Embed the HTML parser and compact entity table from `html_parser` commit
-  `53978cf`. Mooncakes consumers get the smaller native parser through the
-  standard `html2md` dependency.
-- `convert_dom` takes a node from `hustcer/html2md/dom`. Use the new
-  `parse_dom` entry point to parse HTML into that node type.
+### Changed
+
+- **Breaking:** `convert_dom` now accepts `hustcer/html2md/dom.Node`. Use the
+  new `parse_dom` entry point to parse HTML into a compatible node, or import
+  the local DOM package to construct nodes directly.
+- Embed the HTML parser, DOM support and compact entity tables (from
+  `html_parser` commit `53978cf`) and remove the external `html_parser`
+  dependency. Upstream attribution is retained.
+
+### Performance
+
+- The stripped macOS arm64 consumer binary is 306.4 KiB (26.9%) smaller.
+- Markdown output is unchanged across 1,576 HTML fixtures.
+
+### Internal
+
+- Add a GitHub CI workflow.
+
+## 0.2.0 — 2026-11-18
+
+### Changed
+
+- Upgrade `bobzhang/html_parser` to 0.2.4.
+- Fix `moon check` warnings for newer MoonBit toolchains.
+
+## 0.1.3 — 2026-10-12
+
+### Changed
+
+- Upgrade `bobzhang/html_parser` from 0.1.7 to 0.2.0.
+- Fix compiler warnings and reformat code for newer MoonBit toolchains.
 
 ## 0.1.2 — 2026-09-08
 
@@ -65,6 +91,3 @@ Notable changes to `hustcer/html2md` are documented here.
   `convert_dom`.
 - Configurable CommonMark rendering, smart escaping and relative URL resolution.
 - Image rendering, GFM tables and strikethrough support.
-
-[0.1.1]: https://github.com/hustcer/html2md/compare/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/hustcer/html2md/releases/tag/v0.1.0
