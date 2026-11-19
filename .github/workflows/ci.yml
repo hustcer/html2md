@@ -1,0 +1,35 @@
+# Description:
+#   - html2md build & test Check
+
+name: CI
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - develop
+
+    paths-ignore:
+      - "**.md"
+
+jobs:
+  html2md-check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    name: Setup MoonBit@${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Moonbit
+        uses: hustcer/setup-moonbit@main
+
+      - name: Check html2md Build & Test
+        run: |
+          moon version --all
+          moon check --target all
+          moon build --target all
+          moon test --target all
